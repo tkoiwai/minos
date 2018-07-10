@@ -47,12 +47,12 @@
 #include <TVirtualFitter.h>
 #include <TFitter.h>
 #include <time.h>
-#include "/home/liliana/Packages/minos/liboffline/TMinosClust.h"
+#include "/home/koiwai/analysis/include/liboffline/TMinosClust.h"
 
 using namespace std;
 using namespace ROOT::Math;
 
-char *ROOTFILEDIR = "../../rootfiles/";
+char *ROOTFILEDIR = "/home/koiwai/analysis/rootfiles/ana/minos/";
 
 double conv_fit(double *x, double *p);
 
@@ -65,126 +65,82 @@ void stop_interrupt(){
 
 int main(int argc, char** argv)
 {
-  // Variables to calculate the elapsed time of the process
+  //===========Variables to calculate the elapsed time of the process
   time_t start,stop;
   time(&start);
   
-  // Filename
-   char* ridffile;
-   char* rootfile;
-   if(argc < 2) cerr << "Missing RIDF file argument" << endl;
-   ridffile = argv[1];
+  Int_t FileNum = TString(argv[1]).Atoi();
+  char* ridffile;
+  ridffile = Form("/home/koiwai/analysis/ridf/sdaq02/run%04d.ridf.gz",FileNum);
+
+  TArtStoreManager *sman = TArtStoreManager::Instance();
    
-   cout << " *** RIDF file: " << ridffile << endl;
-   
-   TArtStoreManager *sman = TArtStoreManager::Instance();
-   
-   TArtEventStore *estore = new TArtEventStore();
-   estore->SetInterrupt(&stoploop); 
-   estore->Open(ridffile);
-   //TArtRawEventObject *rawevent = estore->GetRawEventObject();
-
-   // Create MINOSParameters to get ".xml"
-   //------------------------------------
-   TArtMINOSParameters *setup = new TArtMINOSParameters("MINOSParameters","MINOSParameters");
-   setup->LoadParameters("../../db/MINOS.xml");
-   //setup->PrintListOfMINOSPara();
-
-   TArtCalibMINOS *CalibMINOS = new TArtCalibMINOS();
-
-   char* infile;
-   if(argv[2]==NULL) {
-      char*  pch;
-      char* pch2;
-      pch = strtok(ridffile, "/");
-      while (pch != NULL) {
-         infile = pch;
-         pch = strtok (NULL, "/");
-      }
-      cerr << infile << endl;
-      pch2 = strtok(infile, ".");
-
-      char OutFile[200]="";
-      strcat(OutFile, ROOTFILEDIR);
-      strcat(OutFile, pch2);
-      strcat(OutFile, "_MINOSVDrift.root");
-
-      rootfile=OutFile;
-   }
-   else rootfile=argv[2];
-
-   cout << endl;
-   cout << " *** ROOT file: " << rootfile << endl;
-
-   TFile *fout = new TFile(rootfile,"RECREATE");
-   TTree * tree = new TTree("tree","ridf tree");
-   //tree->Branch("rawdata",&rawevent);
-   TClonesArray fitdata;
-   fitdata.SetClass("TMinosClust");
-   tree->Branch("fitdata",&fitdata);
-   int Rpadnumber_max=0;
-   tree->Branch("Rpadnumber_max",&Rpadnumber_max, "Rpadnumber_max/I");
-   int Rpadnumber[18];
-
-
-   // define data nodes which are supposed to be dumped to tree 
-   //EventInfo is important for the fBit information to know the trigger!
-   TClonesArray * info_array = (TClonesArray *)sman->FindDataContainer("EventInfo");
-   std::cout<<info_array->GetName()<<std::endl;
-   Int_t EventInfo_fBit = (Int_t)((TArtEventInfo *)info_array->At(0))->GetTriggerBit();
-   tree->Branch(info_array->GetName(),&info_array);
-
-
-   // Parameters for the MINOS ANALYSIS
-   double MINOSthresh=25.;
-   double TimeBinElec=30.; //in ns
-   double Tshaping=333.3; // in ns
-
-   /*
-      ifstream ConfigFile;
-      ConfigFile.open("./../ConfigMINOSDrift.txt");
-      string HeaderFile;
-      string dummystring;
-      getline(ConfigFile,dummystring);
-      ConfigFile >> MINOSthresh >> TimeBinElec >> Tshaping;
-      cout << MINOSthresh << " " << TimeBinElec << " " << Tshaping << endl;
-      ConfigFile.close();
-      */
-   cout << endl;
-   cout << " *** MINOS Configuration Parameters *** " << endl;
-   cout << " Electronics        :::   MINOSthresh = " << MINOSthresh << " (bins)  ;  TimeBinElec = " << TimeBinElec << " (ns)  ;    Tshaping = " << Tshaping << endl;
-   cout << endl;
-
-   double PI = TMath::Pi();
-
-   //    vector<TCanvas*> Filter_canvas;
-   double maxCharge=0.;
-   vector<double> Xpad, Ypad, Qpad;
-   vector<int> clusterringbool;
-   vector<int> clusternbr;
-   vector<int> clusterpads;
-   int indexfill=0;
-   bool fitbool = false;
-   int fit2DStatus = 0;
-   double Chi2=0.;
-   double x_mm,y_mm,r_mm,q_pad,t_pad;
-
-   TF1 *fit_function = new TF1("fit_function",conv_fit, 0, 511, 3); // only 3 param. because baseline is fixed
-   double hfit_max, hfit_max_T, T_min, T_max;
-   TH1F *hfit = new TH1F("hfit","hfit",512,0,512);
-
-   int neve = 0;
-
-   while(estore->GetNextEvent()&& neve<100000)
-     {
-       if(neve%10000==0) cout << "Event " << neve << endl;
-
-      //Clear & Reset variables
+  TArtEventStore *estore = new TArtEventStore();
+  estore->SetInterrupt(&stoploop); 
+  estore->Open(ridffile);
+  
+  //========== Create MINOSParameters to get ".xml"
+  //------------------------------------
+  TArtMINOSParameters *setup = new TArtMINOSParameters("MINOSParameters","MINOSParameters");
+  setup->LoadParameters("/home/koiwai/analysis/db/MINOS.xml");
+  
+  TArtCalibMINOS *CalibMINOS = new TArtCalibMINOS();
+  
+  TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/driftV/driftVminos%04d.root",FileNum);
+  
+  TFile *fout = new TFile(rootfile,"RECREATE");
+  TTree *tree = new TTree("dvtr","ridf tree");
+  //tree->Branch("rawdata",&rawevent);
+  TClonesArray fitdata;
+  fitdata.SetClass("TMinosClust");
+  tree->Branch("fitdata",&fitdata);
+  int Rpadnumber_max=0;
+  tree->Branch("Rpadnumber_max",&Rpadnumber_max, "Rpadnumber_max/I");
+  int Rpadnumber[18];
+  
+  
+  //========== define data nodes which are supposed to be dumped to tree 
+  //========== EventInfo is important for the fBit information to know the trigger!
+  TClonesArray * info_array = (TClonesArray *)sman->FindDataContainer("EventInfo");
+  std::cout<<info_array->GetName()<<std::endl;
+  Int_t EventInfo_fBit = (Int_t)((TArtEventInfo *)info_array->At(0))->GetTriggerBit();
+  tree->Branch(info_array->GetName(),&info_array);
+  
+  
+  //===== Parameters for the MINOS ANALYSIS =====
+  double MINOSthresh=25.;
+  double TimeBinElec=30.; //in ns
+  double Tshaping=333.3; // in ns
+  
+  double PI = TMath::Pi();
+  
+  double maxCharge=0.;
+  vector<double> Xpad, Ypad, Qpad;
+  vector<int> clusterringbool;
+  vector<int> clusternbr;
+  vector<int> clusterpads;
+  int indexfill=0;
+  bool fitbool = false;
+  int fit2DStatus = 0;
+  double Chi2=0.;
+  double x_mm,y_mm,r_mm,q_pad,t_pad;
+  
+  
+  TF1 *fit_function = new TF1("fit_function",conv_fit, 0, 511, 3); // only 3 param. because baseline is fixed
+  double hfit_max, hfit_max_T, T_min, T_max;
+  TH1F *hfit = new TH1F("hfit","hfit",512,0,512);
+  
+  int neve = 0;
+  
+  while(estore->GetNextEvent()&& neve<1000000)
+    {
+      if(neve%100==0) clog << neve/1000 << "k events treated..." << "\r";
+      
+      //===== Clear & Reset variables =====
       fitdata.Clear();
       Xpad.clear();
       Ypad.clear();
       Qpad.clear();
-      //	Filter_canvas.clear();
       hfit->Reset();
       
       indexfill = 0;
@@ -194,8 +150,9 @@ int main(int argc, char** argv)
       fitbool = false;
       for(int ii=0; ii<18; ii++) Rpadnumber[ii] = 0;
       Rpadnumber_max=0;
+
       //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      //Making MINOS OFFLINE Reconstruction
+      //===== Making MINOS OFFLINE Reconstruction =====
       CalibMINOS->ClearData();
       CalibMINOS->ReconstructData();
       TMinosClust *minosfitdata;
@@ -217,13 +174,12 @@ int main(int argc, char** argv)
 	      for(Int_t j=0; j<minos->GetNData(); j++) //loop over the number of samples in the wave form
 		{
 		  if(minos->GetCalibValue(j)>maxCharge) maxCharge = minos->GetCalibValue(j);
-		  //cerr << "Event " << neve << ", x=" << x_mm << ", y_mm=" << y_mm << ", t=" << minos->GetCalibTime(j) << ", q=" << minos->GetCalibValue(j)+250. << endl;
 		}
 	      if(maxCharge>=MINOSthresh) //push that event
 		{
 		  Xpad.push_back(minos->GetX()); //pad position
 		  Ypad.push_back(minos->GetY());
-		  Rpadnumber[int((r_mm-45.2)/2.1)]++; //number of pard in each ring
+		  Rpadnumber[int((r_mm-45.2)/2.1)]++; //number of pad in each ring
 		  Qpad.push_back(maxCharge); //q max
 		}
 	    }
@@ -345,8 +301,8 @@ int main(int argc, char** argv)
 		 }
 	       
                // Comment out for saving histograms of Q(t)
-               //TH1F *hfit_clone = (TH1F*)hfit->Clone(Form("E(T)_%d_%f_%f",neve,x_mm,y_mm));
-               //hfit_clone->Write();
+               TH1F *hfit_clone = (TH1F*)hfit->Clone(Form("E(T)_%d_%f_%f",neve,x_mm,y_mm));
+               hfit_clone->Write();
                //cout << "t_pad = " << t_pad << endl;
                t_pad*=TimeBinElec;
                minosfitdata = (TMinosClust*)fitdata.ConstructedAt(indexfill);
