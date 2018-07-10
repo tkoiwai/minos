@@ -59,19 +59,19 @@
 #include <TFitter.h>
 #include <time.h>
 #include <sys/stat.h>
-#include "/home/liliana/Packages/root_5.34.36/math/genvector/inc/Math/Vector3D.h"
+//#include "/home/liliana/Packages/root_5.34.36/math/genvector/inc/Math/Vector3D.h"
 #include "TVector3.h"
-#include "/home/liliana/Documents/SEASTAR3_Analysis/minos/liboffline/TMinosClust.h"
-#include "/home/liliana/Documents/SEASTAR3_Analysis/minos/liboffline/TMinosResult.h"
-#include "/home/liliana/Documents/SEASTAR3_Analysis/minos/liboffline/Tracking.h"
-#include "../../src/include/segidlist.hh"
+#include "/home/koiwai/analysis/include/liboffline/TMinosClust.h"
+#include "/home/koiwai/analysis/include/liboffline/TMinosResult.h"
+#include "/home/koiwai/analysis/include/liboffline/Tracking.h"
+#include "/home/koiwai/analysis/db/segidlist.hh"
 #include "TArtRawFeminosDataObject.hh"
 #include "TCutG.h"
 using namespace std;
 using namespace ROOT::Math;
 
 bool plots=false;
-double angleRotation=30.7*TMath::DegToRad();
+double angleRotation=30.7*TMath::DegToRad(); //### should be confirmed by myself
 double offsetx=1.69192;
 double offsety=0.60047;
 
@@ -79,9 +79,9 @@ double c0=0.2;
 double c1=0.012;
 
 
-char ROOTFILEDIR[] = "../../rootfiles/";
+char ROOTFILEDIR[] = "/home/koiwai/analysis/rootfiles/";
 
-//Definitions to use TMinuit
+//===== Definitions to use TMinuit =====
 Tracking *Tracking_functions;
 TClonesArray data_result;
 TMinosResult *minosdata_result;
@@ -89,7 +89,7 @@ int NclusterFit;
 void SumDistance(int &, double *, double & sum, double * par,  int);
 bool MINOSOnline = false;
 
-// function to exit loop at keyboard interrupt.
+//===== function to exit loop at keyboard interrupt. =====
 bool stoploop = false;
 void stop_interrupt()
 {
@@ -97,21 +97,17 @@ void stop_interrupt()
   stoploop = true;
 }
 
-
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 int main(int argc, char** argv)
 {
   bool IsChTrue(int,int);
-  // Variables to calculate the elapsed time of the process
+  //===== Variables to calculate the elapsed time of the process =====
   time_t start,stop;
   time(&start);
-  
-  if(argc < 2)
-    {
-      cerr << "Missing RIDF file argument" << endl;
-    }
 
   // Get ridf  file names
   //------------------------------
+  /*
   int RidfRunNumber;
   char* ridffile;
   ridffile = argv[1];
@@ -122,8 +118,12 @@ int main(int argc, char** argv)
   if(online == 1) MINOSOnline = true;
   TString RidfRunPath = Form("../../ridf/run%04d.ridf.gz",RidfRunNumber);
   cout << " *** RIDF file: " << RidfRunPath << endl;
+  */
+  Int_t FileNum = TString(argv[1]).Atoi();
+  TString ridffile = Form("/home/koiwai/analysis/ridf/sdaq02/run%04d.ridf.gz",FileNum);
+
   
-  
+  /*
   //PID Cuts
   //----------------------
   //Open merged file to get PID
@@ -139,6 +139,7 @@ int main(int argc, char** argv)
   tfrag->SetBranchAddress("zet313", &zet313) ;
   
   //-------------
+ 
   TFile *BRcut = new TFile("/home/liliana/Documents/SEASTAR3_Analysis/liliana/Cuts/BRCut_63V.root","READ");
   TCutG *brcut;
   BRcut->GetObject("mycut",brcut);
@@ -168,8 +169,10 @@ int main(int argc, char** argv)
   TCutG *samcut6;
   SAMcut6->GetObject("mycut",samcut6);
   SAMcut6->Close();
+  */
   //Get root file name
   //------------------------
+  /*
   TString rootfilesubpath = Form("../../rootfiles/run%d/",RidfRunNumber);
   TString OutputFilePath;
   if(MINOSOnline) OutputFilePath = rootfilesubpath + Form("run%d_MINOS_Online.root",RidfRunNumber);
@@ -185,8 +188,12 @@ int main(int argc, char** argv)
   
   TFile *fout = new TFile(OutputFilePath.Data(),"RECREATE");
   TTree * tree = new TTree("tree","ridf tree");
+  */
+  TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/cal/cal_minos%04d.root",FileNum);
+  TFile *fout = new TFile(rootfile,"RECREATE");
+  TTree *tree = new TTree("calM","calM");
   
-  //Open ridf
+  //===== Open ridf =====
   //------------
   TArtStoreManager *sman = TArtStoreManager::Instance();
   TArtCalibCoin *myInfo = new TArtCalibCoin();
@@ -194,12 +201,12 @@ int main(int argc, char** argv)
   Long64_t evenumber ;
   TArtEventStore *estore = new TArtEventStore();
   estore->SetInterrupt(&stoploop);
-  estore->Open(RidfRunPath);
+  estore->Open(ridffile);
 
-  // Create MINOSParameters to get ".xml"
+  //===== Create MINOSParameters to get ".xml" =====
   //------------------------------------
   TArtMINOSParameters *setup = new TArtMINOSParameters("MINOSParameters","MINOSParameters");
-  setup->LoadParameters(const_cast<char *>("../../db/MINOS.xml"));
+  setup->LoadParameters(const_cast<char *>("/home/koiwai/analysis/db/MINOS.xml"));
   //setup->PrintListOfMINOSPara();
   TArtCalibMINOS *CalibMINOS = new TArtCalibMINOS();
   TArtCalibMINOSData *minos ; 
