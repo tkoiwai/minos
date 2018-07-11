@@ -52,7 +52,7 @@
 using namespace std;
 using namespace ROOT::Math;
 
-char *ROOTFILEDIR = "/home/koiwai/analysis/rootfiles/ana/minos/";
+//char *ROOTFILEDIR = "/home/koiwai/analysis/rootfiles/ana/minos/";
 
 double conv_fit(double *x, double *p);
 
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
   
   int neve = 0;
   
-  while(estore->GetNextEvent()&& neve<1000000)
+  while(estore->GetNextEvent()&& neve<50000)
     {
       if(neve%100==0) clog << neve/1000 << "k events treated..." << "\r";
       
@@ -301,8 +301,8 @@ int main(int argc, char** argv)
 		 }
 	       
                // Comment out for saving histograms of Q(t)
-               TH1F *hfit_clone = (TH1F*)hfit->Clone(Form("E(T)_%d_%f_%f",neve,x_mm,y_mm));
-               hfit_clone->Write();
+               //TH1F *hfit_clone = (TH1F*)hfit->Clone(Form("E(T)_%d_%f_%f",neve,x_mm,y_mm));
+               //hfit_clone->Write();
                //cout << "t_pad = " << t_pad << endl;
                t_pad*=TimeBinElec;
                minosfitdata = (TMinosClust*)fitdata.ConstructedAt(indexfill);
