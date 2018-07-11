@@ -75,7 +75,7 @@ void vcalc(int runnum){
 
   ofstream fout("/home/koiwai/analysis/db/config_MINOSdrift.txt",ios::app);
   fout << runnum << "  " << func_min->GetParameter(1) <<  " " << func_max->GetParameter(1)
-       << 300./(func_max->GetParameter(1)-func_min->GetParameter(1)) << endl;
+       << " " << 300./(func_max->GetParameter(1)-func_min->GetParameter(1)) << endl;
 
 
   
