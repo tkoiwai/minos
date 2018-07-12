@@ -64,7 +64,7 @@
 #include "/home/koiwai/analysis/include/liboffline/TMinosClust.h"
 #include "/home/koiwai/analysis/include/liboffline/TMinosResult.h"
 #include "/home/koiwai/analysis/include/liboffline/Tracking.h"
-#include "/home/koiwai/analysis/db/segidlist.hh"
+#include "/home/koiwai/analysis/segidlist.hh"
 #include "TArtRawFeminosDataObject.hh"
 #include "TCutG.h"
 using namespace std;
@@ -191,12 +191,12 @@ int main(int argc, char** argv)
   */
   TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/cal/cal_minos%04d.root",FileNum);
   TFile *fout = new TFile(rootfile,"RECREATE");
-  TTree *tree = new TTree("calM","calM");
+  TTree *tree = new TTree("caltrM","caltrM");
   
   //===== Open ridf =====
   //------------
   TArtStoreManager *sman = TArtStoreManager::Instance();
-  TArtCalibCoin *myInfo = new TArtCalibCoin();
+  //TArtCalibCoin *myInfo = new TArtCalibCoin();
   UInt_t runnumber;
   Long64_t evenumber ;
   TArtEventStore *estore = new TArtEventStore();
@@ -220,14 +220,14 @@ int main(int argc, char** argv)
   TArtRawSegmentObject *seg;
   TArtRawDataObject *d;
   
-  //Load function library
+  //===== Load function library =====
   //----------------------
   Tracking_functions = new Tracking();
 
   //EventInfo is important for the fBit information to know the trigger!
   TClonesArray * info_array = (TClonesArray *)sman->FindDataContainer("EventInfo");
   
-  //Variables for the run
+  //===== Variables for the run =====
   //------------------------
   int evtOrig; //the same as neve
   int nch = 7; //Number of channels in the coincidences register, i think ... 
@@ -244,7 +244,7 @@ int main(int argc, char** argv)
   int trackNbr_FINAL;
   double  Pulser_charge;
   vector<Int_t> EventInfo_fBit;
-  //Variables for the fits.. none of them is initialized
+  //===== Variables for the fits.. none of them is initialized =====
   Double_t pStart[4];
   double parFit_temp[4], err_temp[4];
   Double_t chi[2];
@@ -253,11 +253,11 @@ int main(int argc, char** argv)
   Int_t iflag;
   int nvpar,nparx;
   double amin,edm, errdef;
-  // Variables only filled when trackNbr_FINAL>=1
+  //===== Variables only filled when trackNbr_FINAL>=1 =====
   vector<double> lenght, chargeTot;
   vector<double> parFit1, parFit2, parFit3, parFit4, errFit1_local, errFit2_local, errFit3_local, errFit4_local;
   vector<double> parFit1_global, parFit2_global, parFit3_global, parFit4_global, errFit1_global, errFit2_global, errFit3_global, errFit4_global; //not used
-  //variables for all the MINOS part... don't understand what they are.. yet
+  //===== variables for all the MINOS part... don't understand what they are.. yet =====
   //----------------------------------
   vector<TCanvas*> Filter_canvas;
   vector<TCanvas*> Hough_canvas;
@@ -323,22 +323,26 @@ int main(int argc, char** argv)
   tree->Branch("Pulser_charge",&Pulser_charge,"Pulser_charge/D");
 
   tree->Branch("MyEventInfo_fBit",&EventInfo_fBit);
-
+  /*
   tree->Branch("aoqSamurai_cut",&aoqSamurai_cut);
   tree->Branch("zetSamurai_cut",&zetSamurai_cut);
   tree->Branch("aoqBR_cut",&aoqBR_cut);
   tree->Branch("zetBR_cut",&zetBR_cut);
-
-  // Get parameters for the MINOS ANALYSIS
+  */
+  //===== Get parameters for the MINOS ANALYSIS =====
   //-------------------------------------------
   ifstream ConfigFile;
-  ConfigFile.open("../../parameters/MinosVDrift.par");
-  int HeaderFile;
+  //ConfigFile.open("../../parameters/MinosVDrift.par");
+  ConfigFile.open("/home/koiwai/analysis/db/config_MINOSdrift.txt");
+  //int HeaderFile;
+  int header;
   while(ConfigFile.is_open())
     {
-      ConfigFile >> HeaderFile >> DelayTrig >> StopT >> VDrift;
+      //ConfigFile >> HeaderFile >> DelayTrig >> StopT >> VDrift;
+      ConfigFile >> header >> DelayTrig >> StopT >> VDrift;
       // cout<<"searching: "<<RidfRunNumber<<" among "<<HeaderFile<<endl;
-      if(HeaderFile == RidfRunNumber)
+      //if(HeaderFile == RidfRunNumber)
+      if(header == FileNum)
 	break;
     }
   ConfigFile.close();
@@ -358,16 +362,17 @@ int main(int argc, char** argv)
 
   //Main loop over the events
   //----------------------------------------------------------
-  //   while(estore->GetNextEvent()&&neve<100)
-  while(estore->GetNextEvent() && neve<100000)
+  while(estore->GetNextEvent()&&neve<1000000)
+    //while(estore->GetNextEvent() && neve<100000)
     {
-      if(neve%10000==0)
-	cout << "Event " << neve << "\r" << flush;
+      //if(neve%10000==0)
+      //cout << "Event " << neve << "\r" << flush;
+      if(neve%100==0) clog << neve/1000 << "k events treated..." << "\r";
       evtOrig = neve;
       //if(neve%1000)tree->AutoSave();
       
       //get the event and run number
-      myInfo->LoadData(); //coin register
+      //myInfo->LoadData(); //coin register
       runnumber = ((TArtEventInfo *)info_array->At(0))->GetRunNumber();
       evenumber = ((TArtEventInfo *)info_array->At(0))->GetEventNumber();
       
@@ -400,7 +405,7 @@ int main(int argc, char** argv)
        trackNbr=0;
        trackNbr_FINAL=0;
        Pulser_charge = 0.;
-
+       /*
        aoqSamurai=-999;
        aoqSamurai_cut=-999;
        zetSamurai=-999;
@@ -409,7 +414,7 @@ int main(int argc, char** argv)
        zet313=-999;
        aoqBR_cut=-999;
        zetBR_cut=-999;
-       
+       */
        lenght.clear();
        chargeTot.clear();
        parFit1.clear();
@@ -470,7 +475,7 @@ int main(int argc, char** argv)
 	       Pulser_charge = maxCharge;
 	     }
 	 }
-
+       /*
        //Cut in BR and ZD
        //----------------
        bool samCutBool = false;
@@ -497,7 +502,7 @@ int main(int argc, char** argv)
        aoqBR_cut=aoq37_313;
        zetBR_cut=zet313;
        //gcout<<"passed"<<endl;
-       
+       */
        //ONLINE  tracking algorithm
        //----------------------------
        if(MINOSOnline==true)
@@ -581,6 +586,7 @@ int main(int argc, char** argv)
 		   YpadTemp.clear();                
 		   QpadTemp.clear();                
 		   clusterringboolTemp.clear();
+		   /*
 		   if(plots)
 		     {
 		       Filter_canvas.push_back(new TCanvas(Form("Event%d_cluster%d", neve, Iteration), 
@@ -593,12 +599,13 @@ int main(int argc, char** argv)
 		       
 		       Filter_canvas.back()->Write();
 		     }
-		   else //without plots
-		     {
-		       filter_result = Tracking_functions->Hough_modified(&Xpad, &Ypad, &Qpad, 
+		   */
+		   //else //without plots
+		       //{
+		   filter_result = Tracking_functions->Hough_modified(&Xpad, &Ypad, &Qpad, 
 								      &XpadTemp, &YpadTemp, &QpadTemp, 
 								      &clusterringboolTemp);
-		     }
+		   //}
 		   
 		   
 		   if(filter_result<0) break; 
@@ -796,6 +803,7 @@ int main(int argc, char** argv)
 		   //cerr << "Event " << neve << ", xpadnew=" << i << endl;
 		   if(xin.size()>0 && ((cluster_temp!=int(clusternbr[i]) && i!=0) || i==(XpadNew.size() - 1)))
 		     {
+		       /*
 		       if(plots)
 			 {
 			   Hough_canvas.push_back(new TCanvas(Form("HEvent%d_cluster%d", neve, cluster_temp), 
@@ -805,10 +813,11 @@ int main(int argc, char** argv)
 			   
 			   Hough_canvas.back()->Write();
 			 }
-		       else //without plots
+		       */
+		       //else //without plots
 			 Tracking_functions->Hough_3D(&xin, &yin, &zin, &qin, &xout, &yout, &zout, &qout);
 		       
-		       //xout is the vector of valid pads after teh second Hough transformation
+		       //xout is the vector of valid pads after the second Hough transformation
 		       for(unsigned int ij=0; ij<xout.size();ij++)
 			 {
 			   if(zout[ij]>zmax) zmax = zout[ij];
