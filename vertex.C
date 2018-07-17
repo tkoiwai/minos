@@ -50,22 +50,18 @@
 #include <TFitter.h>
 #include <time.h>
 #include <sys/stat.h>
-//#include "/home/liliana/Packages/root_5.34.36/math/genvector/inc/Math/Vector3D.h"
 #include "TVector3.h"
-#include "/home/koiwai/analysis/include/liboffline/TMinosClust.h"
-#include "/home/koiwai/analysis/include/liboffline/TMinosResult.h"
-#include "/home/koiwai/analysis/include/liboffline/Tracking.h"
-#include "/home/koiwai/analysis/segidlist.hh"
 #include "TArtRawFeminosDataObject.hh"
 #include "TCutG.h"
 using namespace std;
-using namespace ROOT::Math;
+using namespace TMath;
 
-int main(int argc, char** argv){
+int main(int argc, char *argv[]){
+  
   time_t start, stop;
   time(&start);
-
-  Int_t filenum = TString(argv[1].Atoi());
+  
+  Int_t filenum = TString(argv[1]).Atoi();
 
   //---------------------------------
   //===== Load input MINOS file =====
@@ -73,21 +69,25 @@ int main(int argc, char** argv){
   TFile   *infileM = TFile::Open(infnameM);
   TTree   *caltrM;
   infileM->GetObject("caltrM",caltrM);
-  infileM->Close();
+  //infileM->Close();
 
   //===== Input tree variables =====
-  Int_t EventNumber_minos, RunNumbe_minos;
-  vector<double> p0xz, p1xz, p0yz, p1yz;
+  Int_t EventNumber_minos, RunNumber_minos;
+  vector<double> *p0xz;
+  vector<double> *p1xz;
+  vector<double> *p0yz;
+  vector<double> *p1yz;
   Int_t tracknum;
-
+  
   //===== SetBranchAddress =====
   caltrM->SetBranchAddress("EventNumber",&EventNumber_minos);
   caltrM->SetBranchAddress("RunNumber",&RunNumber_minos);
+
   caltrM->SetBranchAddress("parFit1",&p0xz);
   caltrM->SetBranchAddress("parFit2",&p1xz);
   caltrM->SetBranchAddress("parFit3",&p0yz);
   caltrM->SetBranchAddress("parFit4",&p1yz);
-  caltrM->SetBranchAddress("NumberTracks",&numtrack);
+  caltrM->SetBranchAddress("NumberTracks",&tracknum);
 
   //------------------------------
   //===== Load input DC file =====
@@ -95,7 +95,7 @@ int main(int argc, char** argv){
   TFile   *infileDC = TFile::Open(infnameDC);
   TTree   *anatrDC;
   infileDC->GetObject("anatrDC",anatrDC);
-  infileDC->Close();
+  //infileDC->Close();
 
   //===== Input tree variables =====
   Int_t EventNumber_dc, RunNumber_dc;
@@ -106,6 +106,7 @@ int main(int argc, char** argv){
   Double_t Target_X, Target_Y;
 
   Int_t BG_flag_dc;
+
   
   //===== SetBranchAddress =====
   anatrDC->SetBranchAddress("EventNum",&EventNumber_dc);
@@ -128,10 +129,11 @@ int main(int argc, char** argv){
 
   //===== Load cut files =====
 
+  
   //===== Load .dat files =====
   
   //===== Create output file/tree =====
-  TString ofname = Form("/home/koiwai/analysis/rootfiles/ana/vertex/vertex%04d.root",filenum);
+  TString ofname = Form("/home/koiwai/analysis/rootfiles/minos/vertex/vertex%04d.root",filenum);
   TFile   *outf  = new TFile(ofname,"RECREATE");
   TTree   *tr    = new TTree("tr","tr");
 
@@ -139,7 +141,8 @@ int main(int argc, char** argv){
 
   //===== Declare variables =====
   Double_t bdc_dx, bdc_dy;
-  vector<Double_t> tmpx, tmpy, tmpz;
+  //vector<Double_t> tmpx, tmpy, tmpz;
+  Double_t tmpx[4], tmpy[4], tmpz[4];
   Double_t tmpx_ave, tmpy_ave;
 
   //===== Declare tree variables =====
@@ -155,7 +158,7 @@ int main(int argc, char** argv){
   tr->Branch("vertexY",&vertexY);
   tr->Branch("vertexZ",&vertexZ);
 
-  //===== Begin LOOP =====
+//===== Begin LOOP =====
   int nEntry = caltrM->GetEntries();
   for(int iEntry=0;iEntry<nEntry;iEntry++){
 
@@ -171,31 +174,36 @@ int main(int argc, char** argv){
     vertexY = Sqrt(-1);
     vertexZ = Sqrt(-1);
     tmpx_ave = 0;
+    tmpy_ave = 0;
+    
+    tmpx.clear();
+    tmpy.clear();
+    tmpz.clear();
 
+
+    
     bdc_dx = BDC2_X - BDC1_X;
     bdc_dy = BDC2_Y - BDC1_Y;
     
     //=== Calc ===
-    if(numtrack==0) continue;
+    if(tracknum==0) continue;
     else{
-      for(Int_t i=0;i<numtrack;i++){
-	tmpx.push_back((p0xz[i]-p0yz[i]+p1yz[i]*(bdc_dy/bdc_dx*BDC_X-BDC_Y))/(p1xz[i]+bcd_dy/bdc_dx*p1yz[i]));
-	tmpx_ave += tmpx.At(i);
-	tmpy.push_back((bcd_dy/bdc_dx*(p0xz[i]-p0yz[i])+p1xz[i]*(BDC_Y-bcd_dy/bdc_dx*BDC_X))/(p1xz[i]+bcd_dy/bdc_dx*p1yz[i]));	
-	tmpy_ave += tmpy.At(i);
+      for(Int_t i=0;i<tracknum;i++){
+	tmpx.push_back((p0xz->at(i)-p0yz->at(i)+p1yz->at(i)*(bdc_dy/bdc_dx*BDC_X-BDC_Y))/(p1xz->at(i)+bdc_dy/bdc_dx*p1yz->at(i)));
+	tmpx_ave += tmpx.at(i);
+	tmpy.push_back((bdc_dy/bdc_dx*(p0xz->at(i)-p0yz->at(i))+p1xz->at(i)*(BDC_Y-bdc_dy/bdc_dx*BDC_X))/(p1xz->at(i)+bdc_dy/bdc_dx*p1yz->at(i)));	
+	tmpy_ave += tmpy.at(i);
       }
-      vertexX = tmpx_ave/numtrack;
-      vertexY = tmpy_ave/numtrack;
+      vertexX = tmpx_ave/tracknum;
+      vertexY = tmpy_ave/tracknum;
 
-      vertexZ = p0xz[0] + p1xz[0]*vertexX; 
+      vertexZ = p0xz->at(0) + p1xz->at(0)*vertexX; 
 
 
 
     }
 
-
-
-
+    
 
 
 
@@ -213,26 +221,7 @@ int main(int argc, char** argv){
   outf->cd();
   tr->Write();
   outf->Close();
-}//main() end
-
-
-
-
-
-
-
-
-  }
-
-
-
-
-
-
-
-  
-  
 
   time(&stop);
   printf("Elapsed time: %.1f seconds\n",difftime(stop,start));
-}
+}//main()
