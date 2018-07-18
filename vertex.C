@@ -53,20 +53,20 @@ int main(int argc, char *argv[]){
 
   //===== Input tree variables =====
   Int_t EventNumber_minos, RunNumber_minos;
-  vector<double> *p0xz = 0;
-  vector<double> *p1xz = 0;
-  vector<double> *p0yz = 0;
-  vector<double> *p1yz = 0;
+  vector<double> *p0 = 0; // z = p0 + p1*x
+  vector<double> *p1 = 0;
+  vector<double> *q0 = 0; // z = q0 + q1*y
+  vector<double> *q1 = 0;
   Int_t tracknum;
   
   //===== SetBranchAddress =====
   caltrM->SetBranchAddress("EventNumber",&EventNumber_minos);
   caltrM->SetBranchAddress("RunNumber",&RunNumber_minos);
 
-  caltrM->SetBranchAddress("parFit1",&p0xz);
-  caltrM->SetBranchAddress("parFit2",&p1xz);
-  caltrM->SetBranchAddress("parFit3",&p0yz);
-  caltrM->SetBranchAddress("parFit4",&p1yz);
+  caltrM->SetBranchAddress("parFit1",&p0);
+  caltrM->SetBranchAddress("parFit2",&p1);
+  caltrM->SetBranchAddress("parFit3",&q0);
+  caltrM->SetBranchAddress("parFit4",&q1);
   caltrM->SetBranchAddress("NumberTracks",&tracknum);
 
   //------------------------------
@@ -118,18 +118,26 @@ int main(int argc, char *argv[]){
   TTree   *tr    = new TTree("tr","tr");
 
   //===== Declare const.s =====
+  Double_t d = 2233.78; // [mm]: BDC1 - MINOS entrance.
+  Double_t dBDC = 998.; // [mm]: BDC1 - BDC2.
 
   //===== Declare variables =====
   Double_t bdc_dx, bdc_dy;
   vector<Double_t> tmpx, tmpy, tmpz;
-  //Double_t tmpx[4], tmpy[4], tmpz[4];
   Double_t tmpx_ave, tmpy_ave;
+
+  Double_t p0beam, p1beam, q0beam, q1beam;
+
+  TVector3 a[5], m[5];
+  Double_t s[5];
 
   //===== Declare tree variables =====
   Int_t runnum, eventnum;
 
   Double_t vertexX, vertexY, vertexZ;
 
+  Double_t lmin;
+  
   //===== Create tree Branch =====
   tr->Branch("runnum",&runnum);
   tr->Branch("eventnum",&eventnum);
@@ -138,13 +146,15 @@ int main(int argc, char *argv[]){
   tr->Branch("vertexY",&vertexY);
   tr->Branch("vertexZ",&vertexZ);
 
-//===== Begin LOOP =====
+  tr->Branch("lmin",&lmin);
+  
+  //===== Begin LOOP =====
   int nEntry = caltrM->GetEntries();
   for(int iEntry=0;iEntry<nEntry;iEntry++){
 
     if(iEntry%100==0) clog << iEntry/1000 << "k events treated..." << "\r";
     //cout << "ok" << endl;
-    sleep(0.1);
+    //sleep(0.1);
     caltrM->GetEntry(iEntry);
     
     runnum   = RunNumber_minos;
@@ -160,36 +170,79 @@ int main(int argc, char *argv[]){
     tmpx.clear();
     tmpy.clear();
     tmpz.clear();
-    /*
-    for(int i=0;i<4;i++){
-      tmpx[i] = 0;
-      tmpy[i] = 0;
-      tmpz[i] = 0;
-    }
-    */
+
     bdc_dx = BDC2_X - BDC1_X;
     bdc_dy = BDC2_Y - BDC1_Y;
+
+    p0beam = Sqrt(-1);
+    p1beam = Sqrt(-1);    
+    q0beam = Sqrt(-1);
+    q1beam = Sqrt(-1);
+
+    lmin = Sqrt(-1);
+
+    for(int i=0;i<5;i++) s[i] = Sqrt(-1);
     
     //=== Calc ===
-    if(tracknum==0) continue;
+    p0beam = -(dBDC/bdc_dx*BDC1_X + d);
+    p1beam = dBDC/bdc_dx;
+    q0beam = -(dBDC/bdc_dy*BDC1_Y + d);
+    q1beam = dBDC/bdc_dy;
+
+    a[0].SetXYZ(-p0beam/p1beam,-q0beam/q1beam,0);
+    m[0].SetXYZ(1/p1beam,1/q1beam,1);
+    
+    for(int i=1;i<tracknum+1;i++){
+      a[i].SetXYZ(-p0->at(i-1)/p1->at(i-1),-q0->at(i-1)/q1->at(i-1),0);
+      m[i].SetXYZ(1/p1->at(i-1),1/q1->at(i-1),1);
+    }
+    
+    if(tracknum==0){
+      tr->Fill();
+      continue;
+    }
+    /*
     else{
       for(Int_t i=0;i<tracknum;i++){
-	//tmpx[i] = (p0xz->at(i)-p0yz->at(i)+p1yz->at(i)*(bdc_dy/bdc_dx*BDC_X-BDC_Y))/(p1xz->at(i)+bdc_dy/bdc_dx*p1yz->at(i));
-	tmpx.push_back((p0xz->at(i)-p0yz->at(i)+p1yz->at(i)*(bdc_dy/bdc_dx*BDC_X-BDC_Y))/(p1xz->at(i)+bdc_dy/bdc_dx*p1yz->at(i)));
+	//tmpx[i] = (p0->at(i)-q0->at(i)+q1->at(i)*(bdc_dy/bdc_dx*BDC_X-BDC_Y))/(p1->at(i)+bdc_dy/bdc_dx*q1->at(i));
+	tmpx.push_back((p0->at(i)-q0->at(i)+q1->at(i)*(bdc_dy/bdc_dx*BDC_X-BDC_Y))/(p1->at(i)+bdc_dy/bdc_dx*q1->at(i)));
 	//tmpx_ave += tmpx[i];
 	tmpx_ave += tmpx.at(i);
-	//tmpy[i] = (bdc_dy/bdc_dx*(p0xz->at(i)-p0yz->at(i))+p1xz->at(i)*(BDC_Y-bdc_dy/bdc_dx*BDC_X))/(p1xz->at(i)+bdc_dy/bdc_dx*p1yz->at(i));
-	tmpy.push_back((bdc_dy/bdc_dx*(p0xz->at(i)-p0yz->at(i))+p1xz->at(i)*(BDC_Y-bdc_dy/bdc_dx*BDC_X))/(p1xz->at(i)+bdc_dy/bdc_dx*p1yz->at(i)));	
+	//tmpy[i] = (bdc_dy/bdc_dx*(p0->at(i)-q0->at(i))+p1->at(i)*(BDC_Y-bdc_dy/bdc_dx*BDC_X))/(p1->at(i)+bdc_dy/bdc_dx*q1->at(i));
+	tmpy.push_back((bdc_dy/bdc_dx*(p0->at(i)-q0->at(i))+p1->at(i)*(BDC_Y-bdc_dy/bdc_dx*BDC_X))/(p1->at(i)+bdc_dy/bdc_dx*q1->at(i)));	
 	//tmpy_ave += tmpy[i];	
 	tmpy_ave += tmpy.at(i);
       }
+    */
+    else if(tracknum==1){
+      TVector3 b = a[1] - a[0];
+      s[0] = (m[1].Mag2()*(b*m[0]) - (m[0]*m[1])*(b*m[0]))/(m[0].Mag2()*m[1].Mag2() - (m[0]*m[1])*(m[0]*m[1]));
+      s[1] = (m[0].Mag2()*(b*m[1]) - (m[0]*m[1])*(b*m[1]))/(m[0].Mag2()*m[1].Mag2() - (m[0]*m[1])*(m[0]*m[1]));
+
+      TVector3 l(9999.,9999.,9999.);
+      l = b + s[1]*m[1] - s[0]*m[0];
+      lmin = l.Mag2();
+
+      TVector3 tmp(9999.,9999.,9999.);
+      tmp = a[0] + a[1] + s[0]*m[0] + s[1]*m[1];
+      vertexX = 0.5*tmp.X();
+      vertexY = 0.5*tmp.Y();
+      vertexZ = 0.5*tmp.Z();
+    }
+    else{
+      tr->Fill();
+      continue;
+    }
+    
+
+    /*
       vertexX = tmpx_ave/tracknum;
       vertexY = tmpy_ave/tracknum;
 
-      vertexZ = p0xz->at(0) + p1xz->at(0)*vertexX; 
+      vertexZ = p0->at(0) + p1->at(0)*vertexX; 
+    */
 
-
-    }
+      //}
     
     //===== BG cut =====
 
