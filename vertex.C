@@ -8,37 +8,17 @@
 #include "TCanvas.h"
 #include "TArtStoreManager.hh"
 #include "TArtEventStore.hh"
-#include "TArtBigRIPSParameters.hh"
-#include "TArtCalibFocalPlane.hh"
-#include "TArtDALIParameters.hh"
 #include "TArtMINOSParameters.hh"
-#include "TArtCalibCoin.hh"
-#include "TArtCalibPID.hh"
-#include "TArtCalibDALI.hh"
 #include "TArtCalibMINOS.hh"
 #include "TArtCalibMINOSData.hh"
 #include "TArtAnalyzedMINOS.hh"
 #include "TArtTrackMINOS.hh"
 #include "TArtTrackMINOSData.hh"
 #include "TArtVertexMINOS.hh"
-#include "TArtCalibPPAC.hh"
-#include "TArtCalibPlastic.hh"
-#include "TArtFocalPlane.hh"
 #include "TArtEventInfo.hh"
-#include "TArtPlastic.hh"
-#include "TArtPPAC.hh"
-#include "TArtRecoPID.hh"
-#include "TArtRecoRIPS.hh"
-#include "TArtRecoTOF.hh"
-#include "TArtRecoBeam.hh"
-#include "TArtPPAC.hh"
-#include "TArtBeam.hh"
-#include "TArtTOF.hh"
-#include "TArtRIPS.hh"
 #include "TTree.h"
 #include "TFile.h"
 #include "TClonesArray.h"
-#include <vector>
 #include "TF1.h"
 #include "TH1.h"
 #include "TH2.h"
@@ -73,10 +53,10 @@ int main(int argc, char *argv[]){
 
   //===== Input tree variables =====
   Int_t EventNumber_minos, RunNumber_minos;
-  vector<double> *p0xz;
-  vector<double> *p1xz;
-  vector<double> *p0yz;
-  vector<double> *p1yz;
+  vector<double> *p0xz = 0;
+  vector<double> *p1xz = 0;
+  vector<double> *p0yz = 0;
+  vector<double> *p1yz = 0;
   Int_t tracknum;
   
   //===== SetBranchAddress =====
@@ -141,8 +121,8 @@ int main(int argc, char *argv[]){
 
   //===== Declare variables =====
   Double_t bdc_dx, bdc_dy;
-  //vector<Double_t> tmpx, tmpy, tmpz;
-  Double_t tmpx[4], tmpy[4], tmpz[4];
+  vector<Double_t> tmpx, tmpy, tmpz;
+  //Double_t tmpx[4], tmpy[4], tmpz[4];
   Double_t tmpx_ave, tmpy_ave;
 
   //===== Declare tree variables =====
@@ -163,7 +143,8 @@ int main(int argc, char *argv[]){
   for(int iEntry=0;iEntry<nEntry;iEntry++){
 
     if(iEntry%100==0) clog << iEntry/1000 << "k events treated..." << "\r";
-
+    //cout << "ok" << endl;
+    sleep(0.1);
     caltrM->GetEntry(iEntry);
     
     runnum   = RunNumber_minos;
@@ -179,9 +160,13 @@ int main(int argc, char *argv[]){
     tmpx.clear();
     tmpy.clear();
     tmpz.clear();
-
-
-    
+    /*
+    for(int i=0;i<4;i++){
+      tmpx[i] = 0;
+      tmpy[i] = 0;
+      tmpz[i] = 0;
+    }
+    */
     bdc_dx = BDC2_X - BDC1_X;
     bdc_dy = BDC2_Y - BDC1_Y;
     
@@ -189,9 +174,13 @@ int main(int argc, char *argv[]){
     if(tracknum==0) continue;
     else{
       for(Int_t i=0;i<tracknum;i++){
+	//tmpx[i] = (p0xz->at(i)-p0yz->at(i)+p1yz->at(i)*(bdc_dy/bdc_dx*BDC_X-BDC_Y))/(p1xz->at(i)+bdc_dy/bdc_dx*p1yz->at(i));
 	tmpx.push_back((p0xz->at(i)-p0yz->at(i)+p1yz->at(i)*(bdc_dy/bdc_dx*BDC_X-BDC_Y))/(p1xz->at(i)+bdc_dy/bdc_dx*p1yz->at(i)));
+	//tmpx_ave += tmpx[i];
 	tmpx_ave += tmpx.at(i);
+	//tmpy[i] = (bdc_dy/bdc_dx*(p0xz->at(i)-p0yz->at(i))+p1xz->at(i)*(BDC_Y-bdc_dy/bdc_dx*BDC_X))/(p1xz->at(i)+bdc_dy/bdc_dx*p1yz->at(i));
 	tmpy.push_back((bdc_dy/bdc_dx*(p0xz->at(i)-p0yz->at(i))+p1xz->at(i)*(BDC_Y-bdc_dy/bdc_dx*BDC_X))/(p1xz->at(i)+bdc_dy/bdc_dx*p1yz->at(i)));	
+	//tmpy_ave += tmpy[i];	
 	tmpy_ave += tmpy.at(i);
       }
       vertexX = tmpx_ave/tracknum;
@@ -200,18 +189,7 @@ int main(int argc, char *argv[]){
       vertexZ = p0xz->at(0) + p1xz->at(0)*vertexX; 
 
 
-
     }
-
-    
-
-
-
-
-
-
-
-
     
     //===== BG cut =====
 
