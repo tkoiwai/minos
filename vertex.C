@@ -118,8 +118,8 @@ int main(int argc, char *argv[]){
   TTree   *tr    = new TTree("tr","tr");
 
   //===== Declare const.s =====
-  Double_t d = 2233.78; // [mm]: BDC1 - MINOS entrance.
-  Double_t dBDC = 998.; // [mm]: BDC1 - BDC2.
+  Double_t d = 2235.31; // [mm]: BDC1 - MINOS entrance.
+  Double_t dBDC = 999.53 ; // [mm]: BDC1 - BDC2.
 
   //===== Declare variables =====
   Double_t bdc_dx, bdc_dy;
@@ -215,46 +215,10 @@ int main(int argc, char *argv[]){
 
     
     //=== Calc ===
-    p0beam = -(BDC1_X + bdc_dx/dBDC*d);
+    p0beam = BDC1_X + bdc_dx/dBDC*d;
     p1beam = bdc_dx/dBDC;
-    p2beam = -(BDC1_Y + bdc_dy/dBDC*d);
+    p2beam = BDC1_Y + bdc_dy/dBDC*d;
     p3beam = bdc_dy/dBDC;
-
-    /*
-    a[0].SetXYZ(-p0beam/p1beam,-q0beam/q1beam,0);
-    m[0].SetXYZ(1/p1beam,1/q1beam,1);
-    
-    for(int i=1;i<tracknum+1;i++){
-      a[i].SetXYZ(-p0->at(i-1)/p1->at(i-1),-q0->at(i-1)/q1->at(i-1),0);
-      m[i].SetXYZ(1/p1->at(i-1),1/q1->at(i-1),1);
-    }
-    
-    if(tracknum==0){
-      tr->Fill();
-      continue;
-    }
-   
-    else if(tracknum==1){
-      TVector3 b = a[1] - a[0];
-      s[0] = (m[1].Mag2()*(b*m[0]) - (m[0]*m[1])*(b*m[0]))/(m[0].Mag2()*m[1].Mag2() - (m[0]*m[1])*(m[0]*m[1]));
-      s[1] = (m[0].Mag2()*(b*m[1]) - (m[0]*m[1])*(b*m[1]))/(m[0].Mag2()*m[1].Mag2() - (m[0]*m[1])*(m[0]*m[1]));
-
-      TVector3 l(9999.,9999.,9999.);
-      l = b + s[1]*m[1] - s[0]*m[0];
-      lmin = l.Mag2();
-
-      TVector3 tmp(9999.,9999.,9999.);
-      tmp = a[0] + a[1] + s[0]*m[0] + s[1]*m[1];
-      vertexX = 0.5*tmp.X();
-      vertexY = 0.5*tmp.Y();
-      vertexZ = 0.5*tmp.Z();
-    }
-    else{
-      tr->Fill();
-      continue;
-    }
-    */
-
 
     if(tracknum==1){
       p0a = p0beam;
@@ -276,7 +240,10 @@ int main(int argc, char *argv[]){
       p2b = p2->at(0);
       p3b = p3->at(0);  
     }
-    else continue;
+    else{
+      tr->Fill();
+      continue;
+    }
     
     dp0 = p0b - p0a;
     dp2 = p2b - p2a;
