@@ -53,10 +53,10 @@ int main(int argc, char *argv[]){
 
   //===== Input tree variables =====
   Int_t EventNumber_minos, RunNumber_minos;
-  vector<double> *p0 = 0; // z = p0 + p1*x
+  vector<double> *p0 = 0; // x = p0 + p1*z
   vector<double> *p1 = 0;
-  vector<double> *q0 = 0; // z = q0 + q1*y
-  vector<double> *q1 = 0;
+  vector<double> *p2 = 0; // y = p2 + p3*z
+  vector<double> *p3 = 0;
   Int_t tracknum;
   
   //===== SetBranchAddress =====
@@ -65,8 +65,8 @@ int main(int argc, char *argv[]){
 
   caltrM->SetBranchAddress("parFit1",&p0);
   caltrM->SetBranchAddress("parFit2",&p1);
-  caltrM->SetBranchAddress("parFit3",&q0);
-  caltrM->SetBranchAddress("parFit4",&q1);
+  caltrM->SetBranchAddress("parFit3",&p2);
+  caltrM->SetBranchAddress("parFit4",&p3);
   caltrM->SetBranchAddress("NumberTracks",&tracknum);
 
   //------------------------------
@@ -126,11 +126,17 @@ int main(int argc, char *argv[]){
   vector<Double_t> tmpx, tmpy, tmpz;
   Double_t tmpx_ave, tmpy_ave;
 
-  Double_t p0beam, p1beam, q0beam, q1beam;
+  Double_t p0beam, p1beam, p2beam, p3beam;
 
   TVector3 a[5], m[5];
   Double_t s[5];
 
+  Double_t p0a, p1a, p2a, p3a;
+  Double_t p0b, p1b, p2b, p3b;
+  Double_t dp0, dp2, beta, alpha, A, B, C;
+  Double_t xa, xb, ya, yb, za, zb;
+
+  
   //===== Declare tree variables =====
   Int_t runnum, eventnum;
 
@@ -176,19 +182,45 @@ int main(int argc, char *argv[]){
 
     p0beam = Sqrt(-1);
     p1beam = Sqrt(-1);    
-    q0beam = Sqrt(-1);
-    q1beam = Sqrt(-1);
+    p2beam = Sqrt(-1);
+    p3beam = Sqrt(-1);
 
     lmin = Sqrt(-1);
 
     for(int i=0;i<5;i++) s[i] = Sqrt(-1);
+
+    p0a = Sqrt(-1);
+    p1a = Sqrt(-1);
+    p2a = Sqrt(-1);
+    p3a = Sqrt(-1);
+    p0b = Sqrt(-1);
+    p1b = Sqrt(-1);
+    p2b = Sqrt(-1);
+    p3b = Sqrt(-1);
+
+    dp0   = Sqrt(-1);
+    dp2   = Sqrt(-1);
+    beta  = Sqrt(-1);
+    alpha = Sqrt(-1);
+    A     = Sqrt(-1);
+    B     = Sqrt(-1);
+    C     = Sqrt(-1);
+
+    xa = Sqrt(-1);
+    xb = Sqrt(-1);
+    ya = Sqrt(-1);
+    yb = Sqrt(-1);
+    za = Sqrt(-1);
+    zb = Sqrt(-1);
+
     
     //=== Calc ===
-    p0beam = -(dBDC/bdc_dx*BDC1_X + d);
-    p1beam = dBDC/bdc_dx;
-    q0beam = -(dBDC/bdc_dy*BDC1_Y + d);
-    q1beam = dBDC/bdc_dy;
+    p0beam = -(BDC1_X + bdc_dx/dBDC*d);
+    p1beam = bdc_dx/dBDC;
+    p2beam = -(BDC1_Y + bdc_dy/dBDC*d);
+    p3beam = bdc_dy/dBDC;
 
+    /*
     a[0].SetXYZ(-p0beam/p1beam,-q0beam/q1beam,0);
     m[0].SetXYZ(1/p1beam,1/q1beam,1);
     
@@ -201,19 +233,7 @@ int main(int argc, char *argv[]){
       tr->Fill();
       continue;
     }
-    /*
-    else{
-      for(Int_t i=0;i<tracknum;i++){
-	//tmpx[i] = (p0->at(i)-q0->at(i)+q1->at(i)*(bdc_dy/bdc_dx*BDC_X-BDC_Y))/(p1->at(i)+bdc_dy/bdc_dx*q1->at(i));
-	tmpx.push_back((p0->at(i)-q0->at(i)+q1->at(i)*(bdc_dy/bdc_dx*BDC_X-BDC_Y))/(p1->at(i)+bdc_dy/bdc_dx*q1->at(i)));
-	//tmpx_ave += tmpx[i];
-	tmpx_ave += tmpx.at(i);
-	//tmpy[i] = (bdc_dy/bdc_dx*(p0->at(i)-q0->at(i))+p1->at(i)*(BDC_Y-bdc_dy/bdc_dx*BDC_X))/(p1->at(i)+bdc_dy/bdc_dx*q1->at(i));
-	tmpy.push_back((bdc_dy/bdc_dx*(p0->at(i)-q0->at(i))+p1->at(i)*(BDC_Y-bdc_dy/bdc_dx*BDC_X))/(p1->at(i)+bdc_dy/bdc_dx*q1->at(i)));	
-	//tmpy_ave += tmpy[i];	
-	tmpy_ave += tmpy.at(i);
-      }
-    */
+   
     else if(tracknum==1){
       TVector3 b = a[1] - a[0];
       s[0] = (m[1].Mag2()*(b*m[0]) - (m[0]*m[1])*(b*m[0]))/(m[0].Mag2()*m[1].Mag2() - (m[0]*m[1])*(m[0]*m[1]));
@@ -233,17 +253,60 @@ int main(int argc, char *argv[]){
       tr->Fill();
       continue;
     }
-    
-
-    /*
-      vertexX = tmpx_ave/tracknum;
-      vertexY = tmpy_ave/tracknum;
-
-      vertexZ = p0->at(0) + p1->at(0)*vertexX; 
     */
 
-      //}
+
+    if(tracknum==1){
+      p0a = p0beam;
+      p1a = p1beam;
+      p2a = p2beam;
+      p3a = p3beam;
+      p0b = p0->at(0);
+      p1b = p1->at(0);
+      p2b = p2->at(0);
+      p3b = p3->at(0);  
+    }
+    else if(tracknum==2){
+      p0a = p0->at(1);
+      p1a = p1->at(1);
+      p2a = p2->at(1);
+      p3a = p3->at(1);
+      p0b = p0->at(0);
+      p1b = p1->at(0);
+      p2b = p2->at(0);
+      p3b = p3->at(0);  
+    }
+    else continue;
     
+    dp0 = p0b - p0a;
+    dp2 = p2b - p2a;
+    alpha = -(p1b*dp0+p3b*dp2)/(p1b*p1b+p3b*p3b+1);
+    beta  = (p1a*p1b+p3a*p3b+1)/(p1b*p1b+p3b*p3b+1);
+    A = beta*(p1b*p1b+p3b*p3b+1) - (p1a*p1b+p3a*p3b+1);
+    B = (p1b*p1b+p3b*p3b+1) - beta*(p1a*p1b+p3a*p3b+1);
+    C = beta*(p1b*dp0+p3b*dp2) - p1a*dp0 - p3a*dp2;
+
+    za = -(A*alpha+C)/(A*beta+B);
+    zb = beta*za + alpha;
+    xa = p0a + p1a+za;
+    xb = p0b + p1b+zb;
+    ya = p2a + p3a+za;
+    yb = p2b + p3b+zb;
+
+    vertexX = 0.5*(xa + xb);
+    vertexY = 0.5*(ya + yb);
+    vertexZ = 0.5*(za + zb);
+
+
+
+    
+
+
+
+
+
+
+   
     //===== BG cut =====
 
 
