@@ -151,7 +151,31 @@ int main(int argc, char *argv[]){
   tr->Branch("vertexX",&vertexX);
   tr->Branch("vertexY",&vertexY);
   tr->Branch("vertexZ",&vertexZ);
+  
+  tr->Branch("p0a",&p0a);
+  tr->Branch("p1a",&p1a);
+  tr->Branch("p2a",&p2a);
+  tr->Branch("p3a",&p3a);
+  tr->Branch("p0b",&p0b);
+  tr->Branch("p1b",&p1b);
+  tr->Branch("p2b",&p2b);
+  tr->Branch("p3b",&p3b);
+  
+  tr->Branch("beta",&beta);
+  tr->Branch("alpha",&alpha);
+  tr->Branch("A",&A);
+  tr->Branch("B",&B);
+  tr->Branch("C",&C);
 
+  
+
+  tr->Branch("xa",&xa);
+  tr->Branch("ya",&ya);
+  tr->Branch("za",&za);
+  tr->Branch("xb",&xb);
+  tr->Branch("yb",&yb);
+  tr->Branch("zb",&zb);
+  
   tr->Branch("lmin",&lmin);
   
   //===== Begin LOOP =====
