@@ -255,10 +255,10 @@ int main(int argc, char *argv[]){
 
     za = -(A*alpha+C)/(A*beta+B);
     zb = beta*za + alpha;
-    xa = p0a + p1a+za;
-    xb = p0b + p1b+zb;
-    ya = p2a + p3a+za;
-    yb = p2b + p3b+zb;
+    xa = p0a + p1a*za;
+    xb = p0b + p1b*zb;
+    ya = p2a + p3a*za;
+    yb = p2b + p3b*zb;
 
     vertexX = 0.5*(xa + xb);
     vertexY = 0.5*(ya + yb);
