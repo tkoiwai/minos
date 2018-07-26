@@ -33,13 +33,16 @@
 #include "TVector3.h"
 #include "TArtRawFeminosDataObject.hh"
 #include "TCutG.h"
+#include "/home/koiwai/analysis/include/liboffline/Tracking.h"
+#include "/home/koiwai/analysis/include/liboffline/TMinosClust.h"
+#include "/home/koiwai/analysis/include/liboffline/TMinosResult.h"
 using namespace std;
 using namespace TMath;
 
 int main(int argc, char *argv[]){
   
   time_t start, stop;
-  time(&start);
+       time(&start);
   
   Int_t filenum = TString(argv[1]).Atoi();
 
@@ -87,7 +90,7 @@ int main(int argc, char *argv[]){
 
   Int_t BG_flag_dc;
 
-  
+  //Tracking *Tracking_func = new Tracking();
   //===== SetBranchAddress =====
   anatrDC->SetBranchAddress("EventNum",&EventNumber_dc);
   anatrDC->SetBranchAddress("RunNum",&RunNumber_dc);
@@ -124,12 +127,12 @@ int main(int argc, char *argv[]){
   //===== Declare variables =====
   Double_t bdc_dx, bdc_dy;
   vector<Double_t> tmpx, tmpy, tmpz;
-  Double_t tmpx_ave, tmpy_ave;
+  //Double_t tmpx_ave, tmpy_ave;
 
   Double_t p0beam, p1beam, p2beam, p3beam;
 
-  TVector3 a[5], m[5];
-  Double_t s[5];
+  //TVector3 a[5], m[5];
+  //Double_t s[5];
 
   Double_t p0a, p1a, p2a, p3a;
   Double_t p0b, p1b, p2b, p3b;
@@ -194,8 +197,8 @@ int main(int argc, char *argv[]){
     vertexX = Sqrt(-1);
     vertexY = Sqrt(-1);
     vertexZ = Sqrt(-1);
-    tmpx_ave = 0;
-    tmpy_ave = 0;
+    //tmpx_ave = 0;
+    //tmpy_ave = 0;
     
     tmpx.clear();
     tmpy.clear();
@@ -211,7 +214,7 @@ int main(int argc, char *argv[]){
 
     lmin = Sqrt(-1);
 
-    for(int i=0;i<5;i++) s[i] = Sqrt(-1);
+    //for(int i=0;i<5;i++) s[i] = Sqrt(-1);
 
     p0a = Sqrt(-1);
     p1a = Sqrt(-1);
@@ -244,7 +247,11 @@ int main(int argc, char *argv[]){
     p2beam = BDC1_Y + bdc_dy/dBDC*d;
     p3beam = bdc_dy/dBDC;
 
+    double p[4], pp[4];
+    
+
     if(tracknum==1){
+      
       p0a = p0beam;
       p1a = p1beam;
       p2a = p2beam;
@@ -253,8 +260,19 @@ int main(int argc, char *argv[]){
       p1b = p1->at(0);
       p2b = p2->at(0);
       p3b = p3->at(0);  
+      /*
+      p[0] = p0beam;
+      p[1] = p1beam;
+      p[2] = p2beam;
+      p[3] = p3beam;
+      pp[0] = p0->at(0);
+      pp[1] = p1->at(0);
+      pp[2] = p2->at(0);
+      pp[3] = p3->at(0);
+      */
     }
     else if(tracknum==2){
+      
       p0a = p0->at(1);
       p1a = p1->at(1);
       p2a = p2->at(1);
@@ -263,6 +281,16 @@ int main(int argc, char *argv[]){
       p1b = p1->at(0);
       p2b = p2->at(0);
       p3b = p3->at(0);  
+      /*
+      p[0] = p0->at(0);
+      p[1] = p1->at(0);
+      p[2] = p2->at(0);
+      p[3] = p3->at(0);
+      pp[0] = p0->at(1);
+      pp[1] = p1->at(1);
+      pp[2] = p2->at(1);
+      pp[3] = p3->at(1);
+      */
     }
     else{
       tr->Fill();
@@ -273,23 +301,24 @@ int main(int argc, char *argv[]){
     dp2 = p2b - p2a;
     alpha = -(p1b*dp0+p3b*dp2)/(p1b*p1b+p3b*p3b+1);
     beta  = (p1a*p1b+p3a*p3b+1)/(p1b*p1b+p3b*p3b+1);
-    A = beta*(p1b*p1b+p3b*p3b+1) - (p1a*p1b+p3a*p3b+1);
-    B = (p1b*p1b+p3b*p3b+1) - beta*(p1a*p1b+p3a*p3b+1);
+    //A = beta*(p1b*p1b+p3b*p3b+1) - (p1a*p1b+p3a*p3b+1);
+    B = (p1a*p1a+p3a*p3a+1) - beta*(p1a*p1b+p3a*p3b+1);
     C = beta*(p1b*dp0+p3b*dp2) - p1a*dp0 - p3a*dp2;
 
-    za = -(A*alpha+C)/(A*beta+B);
+    //za = -(A*alpha+C)/(A*beta+B);
+    za = -C/B;
     zb = beta*za + alpha;
     xa = p0a + p1a*za;
     xb = p0b + p1b*zb;
     ya = p2a + p3a*za;
     yb = p2b + p3b*zb;
 
-    vertexX = 0.5*(xa + xb);
-    vertexY = 0.5*(ya + yb);
-    vertexZ = 0.5*(za + zb);
+    vertexX = (xa + xb)/2.;
+    vertexY = (ya + yb)/2.;
+    vertexZ = (za + zb)/2.;
+    
 
-
-
+    //Tracking_func->vertex(p,pp,vertexX,vertexY,vertexZ);
     
 
 
