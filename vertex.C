@@ -52,7 +52,6 @@ int main(int argc, char *argv[]){
   TFile   *infileM = TFile::Open(infnameM);
   TTree   *caltrM;
   infileM->GetObject("caltrM",caltrM);
-  //infileM->Close();
 
   //===== Input tree variables =====
   Int_t EventNumber_minos, RunNumber_minos;
@@ -78,7 +77,6 @@ int main(int argc, char *argv[]){
   TFile   *infileDC = TFile::Open(infnameDC);
   TTree   *anatrDC;
   infileDC->GetObject("anatrDC",anatrDC);
-  //infileDC->Close();
 
   //===== Input tree variables =====
   Int_t EventNumber_dc, RunNumber_dc;
@@ -90,7 +88,6 @@ int main(int argc, char *argv[]){
 
   Int_t BG_flag_dc;
 
-  //Tracking *Tracking_func = new Tracking();
   //===== SetBranchAddress =====
   anatrDC->SetBranchAddress("EventNum",&EventNumber_dc);
   anatrDC->SetBranchAddress("RunNum",&RunNumber_dc);
@@ -112,7 +109,6 @@ int main(int argc, char *argv[]){
 
   //===== Load cut files =====
 
-  
   //===== Load .dat files =====
   
   //===== Create output file/tree =====
@@ -126,30 +122,26 @@ int main(int argc, char *argv[]){
 
   //===== Declare variables =====
   Double_t bdc_dx, bdc_dy;
-  vector<Double_t> tmpx, tmpy, tmpz;
-  //Double_t tmpx_ave, tmpy_ave;
 
   Double_t p0beam, p1beam, p2beam, p3beam;
 
-  //TVector3 a[5], m[5];
-  //Double_t s[5];
-
-  Double_t p0a, p1a, p2a, p3a;
-  Double_t p0b, p1b, p2b, p3b;
-  Double_t dp0, dp2, beta, alpha, A, B, C;
-  Double_t xa, xb, ya, yb, za, zb;
-
   
+
   //===== Declare tree variables =====
   Int_t runnum, eventnum;
 
   Double_t vertexX, vertexY, vertexZ;
 
-  Double_t lmin;
+  Double_t p0a, p1a, p2a, p3a;
+  Double_t p0b, p1b, p2b, p3b;
+  Double_t dp0, dp2, beta, alpha, B, C;
+  Double_t xa, xb, ya, yb, za, zb;
   
   //===== Create tree Branch =====
   tr->Branch("runnum",&runnum);
   tr->Branch("eventnum",&eventnum);
+
+  tr->Branch("tracknum","tracknum");
 
   tr->Branch("vertexX",&vertexX);
   tr->Branch("vertexY",&vertexY);
@@ -166,7 +158,6 @@ int main(int argc, char *argv[]){
   
   tr->Branch("beta",&beta);
   tr->Branch("alpha",&alpha);
-  tr->Branch("A",&A);
   tr->Branch("B",&B);
   tr->Branch("C",&C);
 
@@ -179,15 +170,11 @@ int main(int argc, char *argv[]){
   tr->Branch("yb",&yb);
   tr->Branch("zb",&zb);
   
-  tr->Branch("lmin",&lmin);
-  
   //===== Begin LOOP =====
   int nEntry = caltrM->GetEntries();
   for(int iEntry=0;iEntry<nEntry;iEntry++){
 
     if(iEntry%100==0) clog << iEntry/1000 << "k events treated..." << "\r";
-    //cout << "ok" << endl;
-    //sleep(0.1);
     caltrM->GetEntry(iEntry);
     
     runnum   = RunNumber_minos;
@@ -197,12 +184,6 @@ int main(int argc, char *argv[]){
     vertexX = Sqrt(-1);
     vertexY = Sqrt(-1);
     vertexZ = Sqrt(-1);
-    //tmpx_ave = 0;
-    //tmpy_ave = 0;
-    
-    tmpx.clear();
-    tmpy.clear();
-    tmpz.clear();
 
     bdc_dx = BDC2_X - BDC1_X;
     bdc_dy = BDC2_Y - BDC1_Y;
@@ -211,10 +192,6 @@ int main(int argc, char *argv[]){
     p1beam = Sqrt(-1);    
     p2beam = Sqrt(-1);
     p3beam = Sqrt(-1);
-
-    lmin = Sqrt(-1);
-
-    //for(int i=0;i<5;i++) s[i] = Sqrt(-1);
 
     p0a = Sqrt(-1);
     p1a = Sqrt(-1);
@@ -229,7 +206,6 @@ int main(int argc, char *argv[]){
     dp2   = Sqrt(-1);
     beta  = Sqrt(-1);
     alpha = Sqrt(-1);
-    A     = Sqrt(-1);
     B     = Sqrt(-1);
     C     = Sqrt(-1);
 
@@ -250,8 +226,7 @@ int main(int argc, char *argv[]){
     double p[4], pp[4];
     
 
-    if(tracknum==1){
-      
+    if(tracknum==1){  
       p0a = p0beam;
       p1a = p1beam;
       p2a = p2beam;
@@ -260,19 +235,8 @@ int main(int argc, char *argv[]){
       p1b = p1->at(0);
       p2b = p2->at(0);
       p3b = p3->at(0);  
-      /*
-      p[0] = p0beam;
-      p[1] = p1beam;
-      p[2] = p2beam;
-      p[3] = p3beam;
-      pp[0] = p0->at(0);
-      pp[1] = p1->at(0);
-      pp[2] = p2->at(0);
-      pp[3] = p3->at(0);
-      */
     }
-    else if(tracknum==2){
-      
+    else if(tracknum>=2){
       p0a = p0->at(1);
       p1a = p1->at(1);
       p2a = p2->at(1);
@@ -281,16 +245,6 @@ int main(int argc, char *argv[]){
       p1b = p1->at(0);
       p2b = p2->at(0);
       p3b = p3->at(0);  
-      /*
-      p[0] = p0->at(0);
-      p[1] = p1->at(0);
-      p[2] = p2->at(0);
-      p[3] = p3->at(0);
-      pp[0] = p0->at(1);
-      pp[1] = p1->at(1);
-      pp[2] = p2->at(1);
-      pp[3] = p3->at(1);
-      */
     }
     else{
       tr->Fill();
@@ -301,11 +255,9 @@ int main(int argc, char *argv[]){
     dp2 = p2b - p2a;
     alpha = -(p1b*dp0+p3b*dp2)/(p1b*p1b+p3b*p3b+1);
     beta  = (p1a*p1b+p3a*p3b+1)/(p1b*p1b+p3b*p3b+1);
-    //A = beta*(p1b*p1b+p3b*p3b+1) - (p1a*p1b+p3a*p3b+1);
     B = (p1a*p1a+p3a*p3a+1) - beta*(p1a*p1b+p3a*p3b+1);
     C = beta*(p1b*dp0+p3b*dp2) - p1a*dp0 - p3a*dp2;
 
-    //za = -(A*alpha+C)/(A*beta+B);
     za = -C/B;
     zb = beta*za + alpha;
     xa = p0a + p1a*za;
@@ -317,16 +269,6 @@ int main(int argc, char *argv[]){
     vertexY = (ya + yb)/2.;
     vertexZ = (za + zb)/2.;
     
-
-    //Tracking_func->vertex(p,pp,vertexX,vertexY,vertexZ);
-    
-
-
-
-
-
-
-   
     //===== BG cut =====
 
 
