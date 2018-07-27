@@ -119,6 +119,7 @@ int main(int argc, char *argv[]){
   //===== Declare const.s =====
   Double_t d = 2235.31; // [mm]: BDC1 - MINOS entrance.
   Double_t dBDC = 999.53 ; // [mm]: BDC1 - BDC2.
+  Double_t PI = TMath::Pi();
 
   //===== Declare variables =====
   Double_t bdc_dx, bdc_dy;
@@ -131,21 +132,28 @@ int main(int argc, char *argv[]){
   Int_t runnum, eventnum;
 
   Double_t vertexX, vertexY, vertexZ;
+  Double_t vertexR, vertexTheta, vertexPhi;
 
   Double_t p0a, p1a, p2a, p3a;
   Double_t p0b, p1b, p2b, p3b;
   Double_t dp0, dp2, beta, alpha, B, C;
   Double_t xa, xb, ya, yb, za, zb;
+
+  Double_t theta2p;
+  
   
   //===== Create tree Branch =====
   tr->Branch("runnum",&runnum);
   tr->Branch("eventnum",&eventnum);
 
-  tr->Branch("tracknum","tracknum");
+  //tr->Branch("NumberTracks","tracknum");
 
   tr->Branch("vertexX",&vertexX);
   tr->Branch("vertexY",&vertexY);
   tr->Branch("vertexZ",&vertexZ);
+  tr->Branch("vertexR",&vertexR);
+  tr->Branch("vertexTheta",&vertexTheta);
+  tr->Branch("vertexPhi",&vertexPhi);
   
   tr->Branch("p0a",&p0a);
   tr->Branch("p1a",&p1a);
@@ -161,14 +169,14 @@ int main(int argc, char *argv[]){
   tr->Branch("B",&B);
   tr->Branch("C",&C);
 
-  
-
   tr->Branch("xa",&xa);
   tr->Branch("ya",&ya);
   tr->Branch("za",&za);
   tr->Branch("xb",&xb);
   tr->Branch("yb",&yb);
   tr->Branch("zb",&zb);
+
+  tr->Branch("theta2p",&theta2p);
   
   //===== Begin LOOP =====
   int nEntry = caltrM->GetEntries();
@@ -181,9 +189,12 @@ int main(int argc, char *argv[]){
     eventnum = EventNumber_minos;
 
     //=== Initialization =====
-    vertexX = Sqrt(-1);
-    vertexY = Sqrt(-1);
-    vertexZ = Sqrt(-1);
+    vertexX     = Sqrt(-1);
+    vertexY     = Sqrt(-1);
+    vertexZ     = Sqrt(-1);
+    vertexR     = Sqrt(-1);
+    vertexTheta = Sqrt(-1);
+    vertexPhi   = Sqrt(-1);
 
     bdc_dx = BDC2_X - BDC1_X;
     bdc_dy = BDC2_Y - BDC1_Y;
@@ -215,6 +226,8 @@ int main(int argc, char *argv[]){
     yb = Sqrt(-1);
     za = Sqrt(-1);
     zb = Sqrt(-1);
+
+    theta2p = Sqrt(-1);
 
     
     //=== Calc ===
@@ -268,6 +281,12 @@ int main(int argc, char *argv[]){
     vertexX = (xa + xb)/2.;
     vertexY = (ya + yb)/2.;
     vertexZ = (za + zb)/2.;
+
+    vertexR     = Sqrt(vertexX*vertexX + vertexY*vertexY);
+    vertexTheta = ACos(vertexZ/vertexR) *180./PI;
+    vertexPhi   = ACos(vertexX/vertexR/Sin(vertexTheta)) *180./PI;
+
+    theta2p = ACos((p1a*p1b + p3a*p3b +1)/(Sqrt(p1a*p1a+p3a*p3a+1)+Sqrt(p1b*p1b+p3b*p3b+1)))*180/PI;
     
     //===== BG cut =====
 
