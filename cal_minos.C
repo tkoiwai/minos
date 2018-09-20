@@ -67,6 +67,7 @@
 #include "/home/koiwai/analysis/segidlist.hh"
 #include "TArtRawFeminosDataObject.hh"
 #include "TCutG.h"
+#include "TApplication.h"
 using namespace std;
 using namespace ROOT::Math;
 
@@ -105,7 +106,8 @@ int main(int argc, char** argv)
   time_t start,stop;
   time(&start);
 
-  // Get ridf  file names
+  TApplication *a = new TApplication("a",0,0);
+    // Get ridf  file names
   //------------------------------
   /*
   int RidfRunNumber;
@@ -137,9 +139,34 @@ int main(int argc, char** argv)
   tfrag->SetBranchAddress("zetSamurai", &zetSamurai) ;
   tfrag->SetBranchAddress("aoq37_313", &aoq37_313) ;
   tfrag->SetBranchAddress("zet313", &zet313) ;
-  
+  */
+  TString infnameb = Form("/home/koiwai/analysis/rootfiles/ana/beam/ana_beam%04d.root",FileNum);
+  TFile *infileb = TFile::Open(infnameb);
+  TTree *trb;
+  infileb->GetObject("anatrB",trb);
+  double aoqBR, zetBR;
+  trb->SetBranchAddress("aoqBR",&aoqBR);
+  trb->SetBranchAddress("zetBR",&zetBR);
+  TString infnames = Form("/home/koiwai/analysis/rootfiles/ana/smri/ana_smri%04d.root",FileNum);
+  TFile *infiles = TFile::Open(infnames);
+  TTree *trs;
+  infiles->GetObject("anatrS",trs);
+  double aoqSA, zetSA;
+  trs->SetBranchAddress("aoqSA",&aoqSA);
+  trs->SetBranchAddress("zetSA",&zetSA);
+
+  trb->AddFriend(trs);
+
+  TFile *brcuts  = new TFile("/home/koiwai/analysis/cutfiles/BRpid.root","");
+  TCutG *cbr56ca = (TCutG*)brcuts->Get("br56ca");
+  TCutG *cbr56sc = (TCutG*)brcuts->Get("br56sc");
+  TCutG *cbr54ca = (TCutG*)brcuts->Get("br54ca");
+  TFile *sacuts  = new TFile("/home/koiwai/analysis/cutfiles/SApid.root","");
+  TCutG *csa55ca = (TCutG*)sacuts->Get("sa55ca");
+  TCutG *csa53ca = (TCutG*)sacuts->Get("sa53ca");
+  TCutG *csa55k  = (TCutG*)sacuts->Get("sa55k");
   //-------------
- 
+  /*
   TFile *BRcut = new TFile("/home/liliana/Documents/SEASTAR3_Analysis/liliana/Cuts/BRCut_63V.root","READ");
   TCutG *brcut;
   BRcut->GetObject("mycut",brcut);
@@ -190,6 +217,7 @@ int main(int argc, char** argv)
   TTree * tree = new TTree("tree","ridf tree");
   */
   TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/cal/cal_minos%04d.root",FileNum);
+  //TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/test/cal_minos%04d.root",FileNum);
   TFile *fout = new TFile(rootfile,"RECREATE");
   TTree *tree = new TTree("caltrM","caltrM");
   
@@ -300,6 +328,8 @@ int main(int argc, char** argv)
   TVector3 point; //not ini
   //TVector3 offset(-1.4,-1.4,-4507.3-75-7);
   TVector3 offset(-1.4,-1.4,-75-7);
+
+  Int_t br56sc, br56ca, br54ca, sa55ca, sa55k, sa53ca;
   
   //Branches definition
   //-----------------------
@@ -329,6 +359,13 @@ int main(int argc, char** argv)
   tree->Branch("aoqBR_cut",&aoqBR_cut);
   tree->Branch("zetBR_cut",&zetBR_cut);
   */
+  tree->Branch("br56ca",&br56ca);
+  tree->Branch("br56sc",&br56sc);
+  tree->Branch("br54ca",&br54ca);
+  tree->Branch("sa55ca",&sa55ca);
+  tree->Branch("sa55k",&sa55k);
+  tree->Branch("sa53ca",&sa53ca);
+  
   //===== Get parameters for the MINOS ANALYSIS =====
   //-------------------------------------------
   ifstream ConfigFile;
@@ -457,6 +494,13 @@ int main(int argc, char** argv)
        padsnbr2=false;
        grxz.clear();
        gryz.clear();
+
+       br56ca = 0;
+       br56sc = 0;
+       br54ca = 0;
+       sa55ca = 0;
+       sa55k = 0;
+       sa53ca = 0;
        
        //Making MINOS Reconstruction
        CalibMINOS->ClearData();
@@ -475,34 +519,56 @@ int main(int argc, char** argv)
 	       Pulser_charge = maxCharge;
 	     }
 	 }
-       /*
+       
        //Cut in BR and ZD
        //----------------
-       bool samCutBool = false;
+       bool SACutBool = false;
        bool BRCutBool = false;
-       tfrag->GetEntry(neve);
-       if(brcut->IsInside(aoq37_313, zet313)) BRCutBool = true;
-       
+       //tfrag->GetEntry(neve);
+       trb->GetEntry(neve);
+       if(cbr56ca->IsInside(aoqBR,zetBR)){
+	 BRCutBool = true;
+	 br56ca = 1;
+       }
+       else if(cbr56sc->IsInside(aoqBR,zetBR)){
+	 BRCutBool = true;
+	 br56sc = 1;
+       }
+       else if(cbr54ca->IsInside(aoqBR,zetBR)){
+	 BRCutBool = true;
+	 br54ca = 1;
+       }
+       if(csa55ca->IsInside(aoqSA,zetSA)){
+	 SACutBool = true;
+	 sa55ca;
+       }
+       else if(csa55k->IsInside(aoqSA,zetSA)){
+	 SACutBool = true;
+	 sa55k;
+       }
+       else if(csa53ca->IsInside(aoqSA,zetSA)){
+	 SACutBool = true;
+	 sa53ca = 1;
+       }
 //       if(samcut1->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
 //       else if(samcut2->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
 //       else if(samcut3->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
 //       else if(samcut4->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
 //       else if(samcut5->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
 //       else if(samcut6->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
-       if(aoqSamurai>2.5 && aoqSamurai<3.1 && zetSamurai>15.5 && zetSamurai<25 ) samCutBool = true;
+       //if(aoqSamurai>2.5 && aoqSamurai<3.1 && zetSamurai>15.5 && zetSamurai<25 ) samCutBool = true;
        
-       if(samCutBool == false)
-	 {
+       if((SACutBool==false)||(BRCutBool==false)){
 	   tree->Fill();
 	   neve++;
 	   continue;
 	 }
-       aoqSamurai_cut=aoqSamurai;
-       zetSamurai_cut=zetSamurai;
-       aoqBR_cut=aoq37_313;
-       zetBR_cut=zet313;
+       //aoqSamurai_cut=aoqSamurai;
+       //zetSamurai_cut=zetSamurai;
+       //aoqBR_cut=aoq37_313;
+       //zetBR_cut=zet313;
        //gcout<<"passed"<<endl;
-       */
+       
        //ONLINE  tracking algorithm
        //----------------------------
        if(MINOSOnline==true)
@@ -759,11 +825,11 @@ int main(int argc, char** argv)
 			       //double r_new= r_mm + deltaR;
 
 			       //Chen
-			       //double kz=0.06;
-			       //double k=0.2*(1.+kz*(x_mm/r_mm*cos(angleRotation)-y_mm/r_mm*sin(angleRotation)));
-			       //double r_new = (r_mm-81.95)*(1.-k*sqrt(1-pow(z_mm/300.-1,2)) )+81.95;
+			       double kz=0.06;
+			       double k=0.2*(1.+kz*(x_mm/r_mm*cos(angleRotation)-y_mm/r_mm*sin(angleRotation)));
+			       double r_new = (r_mm-81.95)*(1.-k*sqrt(1-pow(z_mm/300.-1,2)) )+81.95;
 			       
-			       double r_new=r_mm+(81.95-r_mm)*0.2;
+			       //double r_new=r_mm+(81.95-r_mm)*0.2;
 			       
 			       			       
 			       double ratio=r_new/r_mm;
@@ -772,6 +838,8 @@ int main(int argc, char** argv)
 			       
 			       XpadNew[indexfill]=x_new;
 			       YpadNew[indexfill]=y_new;
+			       //XpadNew[indexfill] = x_mm;
+			       //YpadNew[indexfill] = y_mm;			       
 			       
 			       q_pad = fit_function_max-250.;  // Max charge/event
 			       
