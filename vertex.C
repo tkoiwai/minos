@@ -60,6 +60,9 @@ int main(int argc, char *argv[]){
   vector<double> *p2 = 0; // y = p2 + p3*z
   vector<double> *p3 = 0;
   Int_t tracknum;
+
+  Int_t br56ca, br56sc, br54ca;
+  Int_t sa55ca, sa53ca, sa55k;
   
   //===== SetBranchAddress =====
   caltrM->SetBranchAddress("EventNumber",&EventNumber_minos);
@@ -71,6 +74,13 @@ int main(int argc, char *argv[]){
   caltrM->SetBranchAddress("parFit4",&p3);
   caltrM->SetBranchAddress("NumberTracks",&tracknum);
 
+  caltrM->SetBranchAddress("br56ca",&br56ca);
+  caltrM->SetBranchAddress("br56sc",&br56sc);
+  caltrM->SetBranchAddress("br54ca",&br54ca);
+  caltrM->SetBranchAddress("sa55ca",&sa55ca);
+  caltrM->SetBranchAddress("sa55k",&sa55k);
+  caltrM->SetBranchAddress("sa53ca",&sa53ca);
+  
   //------------------------------
   //===== Load input DC file =====
   TString infnameDC = Form("/home/koiwai/analysis/rootfiles/ana/mwdc/ana_mwdc%04d.root",filenum);
@@ -136,7 +146,7 @@ int main(int argc, char *argv[]){
   caltrM->AddFriend(anatrB);
   caltrM->AddFriend(anatrS);
   
-
+  /*
   //===== Load cut files =====
   TFile *brcuts = new TFile("/home/koiwai/analysis/cutfiles/BRpid.root","");
 
@@ -158,15 +168,15 @@ int main(int argc, char *argv[]){
   TCutG *csa52ca = (TCutG*)sacuts->Get("sa52ca");
 
   TCutG *csa55k = (TCutG*)sacuts->Get("sa55k");
-  /*
-  
+  */
+  /*  
   sacut[j] = (TCutG*)sacuts->Get("sa56ca");sacut[j++]->SetName("csa56ca");
   sacut[j] = (TCutG*)sacuts->Get("sa55ca");sacut[j++]->SetName("csa55ca");
   sacut[j] = (TCutG*)sacuts->Get("sa54ca");sacut[j++]->SetName("csa54ca");
   sacut[j] = (TCutG*)sacuts->Get("sa53ca");sacut[j++]->SetName("csa53ca");
   sacut[j] = (TCutG*)sacuts->Get("sa52ca");sacut[j++]->SetName("csa52ca");
   */
-  sacuts->Close();
+  //sacuts->Close();
 
   //===== Load .dat files =====
   
@@ -200,9 +210,10 @@ int main(int argc, char *argv[]){
   
   Double_t theta2p;
 
+  /*
   Int_t br56ca, br55ca, br54ca, br53ca, br52ca;
   Int_t sa56ca, sa55ca, sa54ca, sa53ca, sa52ca, sa55k;
-
+  */
   
   
   //===== Create tree Branch =====
@@ -244,15 +255,16 @@ int main(int argc, char *argv[]){
   tr->Branch("theta2p",&theta2p);
   
   tr->Branch("br56ca",&br56ca);
-  tr->Branch("br55ca",&br55ca);
+  tr->Branch("br56sc",&br56sc);
+  //tr->Branch("br55ca",&br55ca);
   tr->Branch("br54ca",&br54ca);
-  tr->Branch("br53ca",&br53ca);
-  tr->Branch("br52ca",&br52ca);
-  tr->Branch("sa56ca",&sa56ca);
+  //tr->Branch("br53ca",&br53ca);
+  //tr->Branch("br52ca",&br52ca);
+  //tr->Branch("sa56ca",&sa56ca);
   tr->Branch("sa55ca",&sa55ca);
-  tr->Branch("sa54ca",&sa54ca);
+  //tr->Branch("sa54ca",&sa54ca);
   tr->Branch("sa53ca",&sa53ca);
-  tr->Branch("sa52ca",&sa52ca);
+  //tr->Branch("sa52ca",&sa52ca);
   tr->Branch("sa55k",&sa55k);
 
   //===== Begin LOOP =====
@@ -306,7 +318,7 @@ int main(int argc, char *argv[]){
 
     theta2p = Sqrt(-1);
 
-    
+    /*
     br56ca = 0;
     br55ca = 0;
     br54ca = 0;
@@ -318,6 +330,7 @@ int main(int argc, char *argv[]){
     sa53ca = 0;
     sa52ca = 0;
     sa55k  = 0;
+    */
     
     //=== Calc ===
     p0beam = BDC1_X + bdc_dx/dBDC*d;
@@ -376,7 +389,8 @@ int main(int argc, char *argv[]){
     vertexPhi   = ACos(vertexX/vertexR/Sin(vertexTheta)) *180./PI;
 
     theta2p = ACos((p1a*p1b + p3a*p3b +1)/(Sqrt(p1a*p1a+p3a*p3a+1)*Sqrt(p1b*p1b+p3b*p3b+1)))*180./PI;
-    
+
+    /*
     //===== BG cut =====
     if(cbr56ca->IsInside(aoqBR,zetBR)) br56ca = 1;
     if(cbr55ca->IsInside(aoqBR,zetBR)) br55ca = 1;
@@ -389,6 +403,7 @@ int main(int argc, char *argv[]){
     if(csa53ca->IsInside(aoqSA,zetSA)) sa53ca = 1;
     if(csa52ca->IsInside(aoqSA,zetSA)) sa52ca = 1;
     if(csa55k->IsInside(aoqSA,zetSA))  sa55k  = 1;
+    */
     
     tr->Fill();
   }//for LOOP end
