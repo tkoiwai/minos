@@ -88,6 +88,7 @@ int main(int argc, char *argv[]){
 
   Int_t BG_flag_dc;
 
+  
   //===== SetBranchAddress =====
   anatrDC->SetBranchAddress("EventNum",&EventNumber_dc);
   anatrDC->SetBranchAddress("RunNum",&RunNumber_dc);
@@ -104,10 +105,68 @@ int main(int argc, char *argv[]){
   anatrDC->SetBranchAddress("Target_Y",&Target_Y);
   anatrDC->SetBranchAddress("BG_flag",&BG_flag_dc);
 
+  //===== Load input Beam file =====
+  TString infnameB = Form("/home/koiwai/analysis/rootfiles/ana/beam/ana_beam%04d.root",filenum);
+  TFile   *infileB = TFile::Open(infnameB);
+  TTree   *anatrB;
+  infileB->GetObject("anatrB",anatrB);
+
+
+  Double_t zetBR, aoqBR;
+
+  anatrB->SetBranchAddress("zetBR",&zetBR);
+  anatrB->SetBranchAddress("aoqBR",&aoqBR);
+
+
+  //===== Load input smri file =====
+  TString infnameS = Form("/home/koiwai/analysis/rootfiles/ana/smri/ana_smri%04d.root",filenum);
+  TFile   *infileS = TFile::Open(infnameS);
+  TTree   *anatrS;
+  infileS->GetObject("anatrS",anatrS);
+
+
+  Double_t zetSA, aoqSA;
+
+  anatrS->SetBranchAddress("zetSA",&zetSA);
+  anatrS->SetBranchAddress("aoqSA",&aoqSA);
+  
+  
   //===== AddFriend =====
   caltrM->AddFriend(anatrDC);
+  caltrM->AddFriend(anatrB);
+  caltrM->AddFriend(anatrS);
+  
 
   //===== Load cut files =====
+  TFile *brcuts = new TFile("/home/koiwai/analysis/cutfiles/BRpid.root","");
+
+  TCutG *cbr56ca = (TCutG*)brcuts->Get("br56ca");
+  TCutG *cbr55ca = (TCutG*)brcuts->Get("br55ca");
+  TCutG *cbr54ca = (TCutG*)brcuts->Get("br54ca");
+  TCutG *cbr53ca = (TCutG*)brcuts->Get("br53ca");
+  TCutG *cbr52ca = (TCutG*)brcuts->Get("br52ca");
+  
+  
+  TFile *sacuts = new TFile("/home/koiwai/analysis/cutfiles/SApid.root","");
+  //  TCutG* sacut[50];
+  //int j=0;
+
+  TCutG *csa56ca = (TCutG*)sacuts->Get("sa56ca");
+  TCutG *csa55ca = (TCutG*)sacuts->Get("sa55ca");
+  TCutG *csa54ca = (TCutG*)sacuts->Get("sa54ca");
+  TCutG *csa53ca = (TCutG*)sacuts->Get("sa53ca");
+  TCutG *csa52ca = (TCutG*)sacuts->Get("sa52ca");
+
+  TCutG *csa55k = (TCutG*)sacuts->Get("sa55k");
+  /*
+  
+  sacut[j] = (TCutG*)sacuts->Get("sa56ca");sacut[j++]->SetName("csa56ca");
+  sacut[j] = (TCutG*)sacuts->Get("sa55ca");sacut[j++]->SetName("csa55ca");
+  sacut[j] = (TCutG*)sacuts->Get("sa54ca");sacut[j++]->SetName("csa54ca");
+  sacut[j] = (TCutG*)sacuts->Get("sa53ca");sacut[j++]->SetName("csa53ca");
+  sacut[j] = (TCutG*)sacuts->Get("sa52ca");sacut[j++]->SetName("csa52ca");
+  */
+  sacuts->Close();
 
   //===== Load .dat files =====
   
@@ -133,13 +192,17 @@ int main(int argc, char *argv[]){
 
   Double_t vertexX, vertexY, vertexZ;
   Double_t vertexR, vertexTheta, vertexPhi;
-
+  
   Double_t p0a, p1a, p2a, p3a;
   Double_t p0b, p1b, p2b, p3b;
   Double_t dp0, dp2, beta, alpha, B, C;
   Double_t xa, xb, ya, yb, za, zb;
-
+  
   Double_t theta2p;
+
+  Int_t br56ca, br55ca, br54ca, br53ca, br52ca;
+  Int_t sa56ca, sa55ca, sa54ca, sa53ca, sa52ca, sa55k;
+
   
   
   //===== Create tree Branch =====
@@ -154,7 +217,7 @@ int main(int argc, char *argv[]){
   tr->Branch("vertexR",&vertexR);
   tr->Branch("vertexTheta",&vertexTheta);
   tr->Branch("vertexPhi",&vertexPhi);
-  
+  /*
   tr->Branch("p0a",&p0a);
   tr->Branch("p1a",&p1a);
   tr->Branch("p2a",&p2a);
@@ -175,9 +238,23 @@ int main(int argc, char *argv[]){
   tr->Branch("xb",&xb);
   tr->Branch("yb",&yb);
   tr->Branch("zb",&zb);
+  */
 
+  
   tr->Branch("theta2p",&theta2p);
   
+  tr->Branch("br56ca",&br56ca);
+  tr->Branch("br55ca",&br55ca);
+  tr->Branch("br54ca",&br54ca);
+  tr->Branch("br53ca",&br53ca);
+  tr->Branch("br52ca",&br52ca);
+  tr->Branch("sa56ca",&sa56ca);
+  tr->Branch("sa55ca",&sa55ca);
+  tr->Branch("sa54ca",&sa54ca);
+  tr->Branch("sa53ca",&sa53ca);
+  tr->Branch("sa52ca",&sa52ca);
+  tr->Branch("sa55k",&sa55k);
+
   //===== Begin LOOP =====
   int nEntry = caltrM->GetEntries();
   for(int iEntry=0;iEntry<nEntry;iEntry++){
@@ -229,6 +306,18 @@ int main(int argc, char *argv[]){
 
     theta2p = Sqrt(-1);
 
+    
+    br56ca = 0;
+    br55ca = 0;
+    br54ca = 0;
+    br53ca = 0;
+    br52ca = 0;
+    sa56ca = 0;
+    sa55ca = 0;
+    sa54ca = 0;
+    sa53ca = 0;
+    sa52ca = 0;
+    sa55k  = 0;
     
     //=== Calc ===
     p0beam = BDC1_X + bdc_dx/dBDC*d;
@@ -282,15 +371,25 @@ int main(int argc, char *argv[]){
     vertexY = (ya + yb)/2.;
     vertexZ = (za + zb)/2.;
 
-    vertexR     = Sqrt(vertexX*vertexX + vertexY*vertexY);
+    vertexR     = Sqrt(vertexX*vertexX + vertexY*vertexY + vertexZ*vertexZ);
     vertexTheta = ACos(vertexZ/vertexR) *180./PI;
     vertexPhi   = ACos(vertexX/vertexR/Sin(vertexTheta)) *180./PI;
 
-    theta2p = ACos((p1a*p1b + p3a*p3b +1)/(Sqrt(p1a*p1a+p3a*p3a+1)+Sqrt(p1b*p1b+p3b*p3b+1)))*180/PI;
+    theta2p = ACos((p1a*p1b + p3a*p3b +1)/(Sqrt(p1a*p1a+p3a*p3a+1)*Sqrt(p1b*p1b+p3b*p3b+1)))*180./PI;
     
     //===== BG cut =====
-
-
+    if(cbr56ca->IsInside(aoqBR,zetBR)) br56ca = 1;
+    if(cbr55ca->IsInside(aoqBR,zetBR)) br55ca = 1;
+    if(cbr54ca->IsInside(aoqBR,zetBR)) br54ca = 1;
+    if(cbr53ca->IsInside(aoqBR,zetBR)) br53ca = 1;
+    if(cbr52ca->IsInside(aoqBR,zetBR)) br52ca = 1;
+    if(csa56ca->IsInside(aoqSA,zetSA)) sa56ca = 1;
+    if(csa55ca->IsInside(aoqSA,zetSA)) sa55ca = 1;
+    if(csa54ca->IsInside(aoqSA,zetSA)) sa54ca = 1;
+    if(csa53ca->IsInside(aoqSA,zetSA)) sa53ca = 1;
+    if(csa52ca->IsInside(aoqSA,zetSA)) sa52ca = 1;
+    if(csa55k->IsInside(aoqSA,zetSA))  sa55k  = 1;
+    
     tr->Fill();
   }//for LOOP end
   outf->cd();
