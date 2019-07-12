@@ -1,6 +1,10 @@
-void vcalc(int runnum){
+void vcalc(){
+  cout << "usage: calc(int RUN NUMBER)" << endl; 
+}
+
+void calc(int runnum){
   TFile *driftV = TFile::Open(Form("/home/koiwai/analysis/rootfiles/minos/driftV/driftVminos%04d.root",runnum));
-  dvtr->Draw("t_ns>>h(400,1100,13000)");
+  dvtr->Draw("t_ns>>h(400,1000,13000)");
   double y[400] = {0};
   double t[400] = {0};
   for(int i=0;i<400;i++){
