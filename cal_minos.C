@@ -154,17 +154,59 @@ int main(int argc, char** argv)
   double aoqSA, zetSA;
   trs->SetBranchAddress("aoqSA",&aoqSA);
   trs->SetBranchAddress("zetSA",&zetSA);
-
+  /*
+  TString infnamepid = Form("/home/koiwai/analysis/rootfiles/ana/pid/pid%04d.root",FileNum);
+  TFile *infilepid = TFile::Open(infnamepid);
+  TTree *trpid;
+  infilepid->GetObject("pidtr",trpid);
+  int br59sc, br58sc, br57sc, br56sc, br56ca, br55ca, br54ca, br55k,  br51k;
+  int sa59sc, sa58sc, sa57sc, sa56sc, sa56ca, sa55ca, sa54ca, sa53ca, sa55k,  sa51k,  sa50ar;
+  trpid->SetBranchAddress("br59sc",&br59sc);
+  trpid->SetBranchAddress("br58sc",&br58sc);
+  trpid->SetBranchAddress("br57sc",&br57sc);
+  trpid->SetBranchAddress("br56sc",&br56sc);
+  trpid->SetBranchAddress("br56ca",&br56ca);
+  trpid->SetBranchAddress("br55ca",&br55ca);
+  trpid->SetBranchAddress("br54ca",&br54ca);
+  trpid->SetBranchAddress("br55k",&br55k);
+  trpid->SetBranchAddress("br51k",&br51k);
+  trpid->SetBranchAddress("sa59sc",&sa59sc);
+  trpid->SetBranchAddress("sa58sc",&sa58sc);
+  trpid->SetBranchAddress("sa57sc",&sa57sc);
+  trpid->SetBranchAddress("sa56sc",&sa56sc);
+  trpid->SetBranchAddress("sa56ca",&sa56ca);
+  trpid->SetBranchAddress("sa55ca",&sa55ca);
+  trpid->SetBranchAddress("sa54ca",&sa54ca);
+  trpid->SetBranchAddress("sa53ca",&sa53ca);
+  trpid->SetBranchAddress("sa55k",&sa55k);
+  trpid->SetBranchAddress("sa51k",&sa51k);
+  trpid->SetBranchAddress("sa50ar",&sa50ar);
+  */
   trb->AddFriend(trs);
-
-  TFile *brcuts  = new TFile("/home/koiwai/analysis/cutfiles/BRpid.root","");
-  TCutG *cbr56ca = (TCutG*)brcuts->Get("br56ca");
-  TCutG *cbr56sc = (TCutG*)brcuts->Get("br56sc");
-  TCutG *cbr54ca = (TCutG*)brcuts->Get("br54ca");
-  TFile *sacuts  = new TFile("/home/koiwai/analysis/cutfiles/SApid.root","");
-  TCutG *csa55ca = (TCutG*)sacuts->Get("sa55ca");
-  TCutG *csa53ca = (TCutG*)sacuts->Get("sa53ca");
-  TCutG *csa55k  = (TCutG*)sacuts->Get("sa55k");
+  //trb->AddFriend(trpid);
+  
+  TFile *cuts  = new TFile("/home/koiwai/analysis/cutfiles/pid_mychannels.root","");
+  TCutG *cbr59sc = (TCutG*)cuts->Get("br59sc");
+  TCutG *cbr58sc = (TCutG*)cuts->Get("br58sc");
+  TCutG *cbr57sc = (TCutG*)cuts->Get("br57sc");
+  TCutG *cbr56sc = (TCutG*)cuts->Get("br56sc");
+  TCutG *cbr56ca = (TCutG*)cuts->Get("br56ca");
+  TCutG *cbr55ca = (TCutG*)cuts->Get("br55ca");
+  TCutG *cbr54ca = (TCutG*)cuts->Get("br54ca");
+  TCutG *cbr55k  = (TCutG*)cuts->Get("br55k");
+  TCutG *cbr51k  = (TCutG*)cuts->Get("br51k");
+  TCutG *csa59sc = (TCutG*)cuts->Get("sa59sc");
+  TCutG *csa58sc = (TCutG*)cuts->Get("sa58sc");
+  TCutG *csa57sc = (TCutG*)cuts->Get("sa57sc");
+  TCutG *csa56sc = (TCutG*)cuts->Get("sa56sc");
+  TCutG *csa56ca = (TCutG*)cuts->Get("sa56ca");
+  TCutG *csa55ca = (TCutG*)cuts->Get("sa55ca");
+  TCutG *csa54ca = (TCutG*)cuts->Get("sa54ca");
+  TCutG *csa53ca = (TCutG*)cuts->Get("sa53ca");
+  TCutG *csa55k  = (TCutG*)cuts->Get("sa55k");
+  TCutG *csa51k  = (TCutG*)cuts->Get("sa51k");
+  TCutG *csa50ar = (TCutG*)cuts->Get("sa50ar");
+  
   //-------------
   /*
   TFile *BRcut = new TFile("/home/liliana/Documents/SEASTAR3_Analysis/liliana/Cuts/BRCut_63V.root","READ");
@@ -328,8 +370,9 @@ int main(int argc, char** argv)
   TVector3 point; //not ini
   //TVector3 offset(-1.4,-1.4,-4507.3-75-7);
   TVector3 offset(-1.4,-1.4,-75-7);
-
-  Int_t br56sc, br56ca, br54ca, sa55ca, sa55k, sa53ca;
+  
+  int br59sc, br58sc, br57sc, br56sc, br56ca, br55ca, br54ca, br55k,  br51k;
+  int sa59sc, sa58sc, sa57sc, sa56sc, sa56ca, sa55ca, sa54ca, sa53ca, sa55k,  sa51k,  sa50ar;
   
   //Branches definition
   //-----------------------
@@ -359,12 +402,27 @@ int main(int argc, char** argv)
   tree->Branch("aoqBR_cut",&aoqBR_cut);
   tree->Branch("zetBR_cut",&zetBR_cut);
   */
-  tree->Branch("br56ca",&br56ca);
+  
+  tree->Branch("br59sc",&br59sc);
+  tree->Branch("br58sc",&br58sc);
+  tree->Branch("br57sc",&br57sc);
   tree->Branch("br56sc",&br56sc);
+  tree->Branch("br56ca",&br56ca);
+  tree->Branch("br55ca",&br55ca);
   tree->Branch("br54ca",&br54ca);
+  tree->Branch("br55k",&br55k);
+  tree->Branch("br51k",&br51k);
+  tree->Branch("sa59sc",&sa59sc);
+  tree->Branch("sa58sc",&sa58sc);
+  tree->Branch("sa57sc",&sa57sc);
+  tree->Branch("sa56sc",&sa56sc);
+  tree->Branch("sa56ca",&sa56ca);
   tree->Branch("sa55ca",&sa55ca);
-  tree->Branch("sa55k",&sa55k);
+  tree->Branch("sa54ca",&sa54ca);
   tree->Branch("sa53ca",&sa53ca);
+  tree->Branch("sa55k",&sa55k);
+  tree->Branch("sa51k",&sa51k);
+  tree->Branch("sa50ar",&sa50ar);
   
   //===== Get parameters for the MINOS ANALYSIS =====
   //-------------------------------------------
@@ -495,12 +553,27 @@ int main(int argc, char** argv)
        grxz.clear();
        gryz.clear();
 
-       br56ca = 0;
+       br59sc = 0;
+       br58sc = 0;
+       br57sc = 0;
        br56sc = 0;
+       br56ca = 0;
+       br56ca = 0;
+       br55ca = 0;
        br54ca = 0;
+       br55k  = 0;
+       br51k  = 0;
+       sa59sc = 0;
+       sa58sc = 0;
+       sa57sc = 0;
+       sa56sc = 0;
+       sa56ca = 0;
        sa55ca = 0;
-       sa55k = 0;
+       sa54ca = 0;
        sa53ca = 0;
+       sa55k  = 0;
+       sa51k  = 0;
+       sa50ar = 0;
        
        //Making MINOS Reconstruction
        CalibMINOS->ClearData();
@@ -526,30 +599,35 @@ int main(int argc, char** argv)
        bool BRCutBool = false;
        //tfrag->GetEntry(neve);
        trb->GetEntry(neve);
-       if(cbr56ca->IsInside(aoqBR,zetBR)){
+
+       /*
+       if(br59sc_C==1||br58sc_C==1||br57sc_C==1||br56sc_C==1||br56ca_C==1||br55ca_C==1||br54ca==1||br55k==1||br51k==1)
 	 BRCutBool = true;
-	 br56ca = 1;
-       }
-       else if(cbr56sc->IsInside(aoqBR,zetBR)){
-	 BRCutBool = true;
-	 br56sc = 1;
-       }
-       else if(cbr54ca->IsInside(aoqBR,zetBR)){
-	 BRCutBool = true;
-	 br54ca = 1;
-       }
-       if(csa55ca->IsInside(aoqSA,zetSA)){
+       if(sa59sc_C==1||sa58sc_C==1||sa57sc_C==1||sa56sc_C==1||sa56ca_C==1||sa55ca_C==1||sa54ca_C==1||sa53ca_C==1||sa55k==1||sa51k==1||sa50ar==1)
 	 SACutBool = true;
-	 sa55ca;
-       }
-       else if(csa55k->IsInside(aoqSA,zetSA)){
-	 SACutBool = true;
-	 sa55k;
-       }
-       else if(csa53ca->IsInside(aoqSA,zetSA)){
-	 SACutBool = true;
-	 sa53ca = 1;
-       }
+       */
+       
+       if(cbr59sc->IsInside(aoqBR,zetBR))     { br59sc = 1; BRCutBool = true; }
+       else if(cbr58sc->IsInside(aoqBR,zetBR)){	br58sc = 1; BRCutBool = true; }
+       else if(cbr57sc->IsInside(aoqBR,zetBR)){	br57sc = 1; BRCutBool = true; }
+       else if(cbr56sc->IsInside(aoqBR,zetBR)){	br56sc = 1; BRCutBool = true; }
+       else if(cbr56ca->IsInside(aoqBR,zetBR)){ br56ca = 1; BRCutBool = true; }
+       else if(cbr55ca->IsInside(aoqBR,zetBR)){ br55ca = 1; BRCutBool = true; }
+       else if(cbr54ca->IsInside(aoqBR,zetBR)){ br54ca = 1; BRCutBool = true; }
+       else if(cbr55k->IsInside(aoqBR,zetBR)) { br55k  = 1; BRCutBool = true; }
+       else if(cbr51k->IsInside(aoqBR,zetBR)) { br51k  = 1; BRCutBool = true; }
+       if(csa59sc->IsInside(aoqSA,zetSA))     { sa59sc = 1; SACutBool = true; }
+       else if(csa58sc->IsInside(aoqSA,zetSA)){	sa58sc = 1; SACutBool = true; }
+       else if(csa57sc->IsInside(aoqSA,zetSA)){	sa57sc = 1; SACutBool = true; }
+       else if(csa56sc->IsInside(aoqSA,zetSA)){	sa56sc = 1; SACutBool = true; }
+       else if(csa56ca->IsInside(aoqSA,zetSA)){ sa56ca = 1; SACutBool = true; }
+       else if(csa55ca->IsInside(aoqSA,zetSA)){ sa55ca = 1; SACutBool = true; }
+       else if(csa54ca->IsInside(aoqSA,zetSA)){ sa54ca = 1; SACutBool = true; }
+       else if(csa53ca->IsInside(aoqSA,zetSA)){ sa53ca = 1; SACutBool = true; }
+       else if(csa55k->IsInside(aoqSA,zetSA)) { sa55k  = 1; SACutBool = true; }
+       else if(csa51k->IsInside(aoqSA,zetSA)) { sa51k  = 1; SACutBool = true; }
+       else if(csa50ar->IsInside(aoqSA,zetSA)){ sa50ar = 1; SACutBool = true; }
+       
 //       if(samcut1->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
 //       else if(samcut2->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
 //       else if(samcut3->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
