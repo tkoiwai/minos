@@ -124,7 +124,7 @@ int main(int argc, char** argv)
   Int_t FileNum = TString(argv[1]).Atoi();
   TString ridffile = Form("/home/koiwai/analysis/ridf/sdaq02/run%04d.ridf.gz",FileNum);
 
-  
+  cout << "TK: RIDF file loaded-> " << ridffile << endl;  
   /*
   //PID Cuts
   //----------------------
@@ -184,7 +184,8 @@ int main(int argc, char** argv)
   */
   trb->AddFriend(trs);
   //trb->AddFriend(trpid);
-  
+
+  /*
   TFile *cuts  = new TFile("/home/koiwai/analysis/cutfiles/pid_mychannels.root","");
   TCutG *cbr59sc = (TCutG*)cuts->Get("br59sc");
   TCutG *cbr58sc = (TCutG*)cuts->Get("br58sc");
@@ -206,6 +207,7 @@ int main(int argc, char** argv)
   TCutG *csa55k  = (TCutG*)cuts->Get("sa55k");
   TCutG *csa51k  = (TCutG*)cuts->Get("sa51k");
   TCutG *csa50ar = (TCutG*)cuts->Get("sa50ar");
+  */
   
   //-------------
   /*
@@ -258,10 +260,40 @@ int main(int argc, char** argv)
   TFile *fout = new TFile(OutputFilePath.Data(),"RECREATE");
   TTree * tree = new TTree("tree","ridf tree");
   */
-  TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/cal/cal_minos%04d.root",FileNum);
+
+  //===== LOAD CUT FILES ============================================================================
+
+  TFile *fcutBR_Ca = TFile::Open("/home/koiwai/analysis/cutfiles/cutBR_Ca.root");
+
+  TCutG *cbr56ca = (TCutG*)fcutBR_Ca->Get("br56ca");
+  TCutG *cbr55ca = (TCutG*)fcutBR_Ca->Get("br55ca");
+  TCutG *cbr54ca = (TCutG*)fcutBR_Ca->Get("br54ca");
+  TCutG *cbr53ca = (TCutG*)fcutBR_Ca->Get("br53ca");
+
+  TFile *fcutBR_K = TFile::Open("/home/koiwai/analysis/cutfiles/cutBR_K.root");
+
+  TCutG *cbr51k = (TCutG*)fcutBR_K->Get("br51k");
+
+  TFile *fcutSA_Ca = TFile::Open("/home/koiwai/analysis/cutfiles/cutSA_Ca.root");
+
+  TCutG *csa57ca = (TCutG*)fcutSA_Ca->Get("sa57ca");
+  TCutG *csa55ca = (TCutG*)fcutSA_Ca->Get("sa55ca");
+  TCutG *csa54ca = (TCutG*)fcutSA_Ca->Get("sa54ca");
+  TCutG *csa53ca = (TCutG*)fcutSA_Ca->Get("sa53ca");
+
+  TFile *fcutSA_K = TFile::Open("/home/koiwai/analysis/cutfiles/cutSA_K.root");
+  
+  TCutG *csa55k = (TCutG*)fcutSA_K->Get("sa55k");
+
+
+
+  
+  TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/cal_new/cal_minos%04d.root",FileNum);
   //TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/test/cal_minos%04d.root",FileNum);
   TFile *fout = new TFile(rootfile,"RECREATE");
   TTree *tree = new TTree("caltrM","caltrM");
+
+  cout << "TK: created new rootfile-> " << rootfile << endl;
   
   //===== Open ridf =====
   //------------
@@ -371,8 +403,13 @@ int main(int argc, char** argv)
   //TVector3 offset(-1.4,-1.4,-4507.3-75-7);
   TVector3 offset(-1.4,-1.4,-75-7);
   
-  int br59sc, br58sc, br57sc, br56sc, br56ca, br55ca, br54ca, br55k,  br51k;
-  int sa59sc, sa58sc, sa57sc, sa56sc, sa56ca, sa55ca, sa54ca, sa53ca, sa55k,  sa51k,  sa50ar;
+  //int br59sc, br58sc, br57sc, br56sc, br56ca, br55ca, br54ca, br55k,  br51k;
+  //int sa59sc, sa58sc, sa57sc, sa56sc, sa56ca, sa55ca, sa54ca, sa53ca, sa55k,  sa51k,  sa50ar;
+
+  Bool_t br56ca, br55ca, br54ca, br53ca, br51k;
+  Bool_t sa57ca, sa55ca, sa54ca, sa53ca, sa55k;
+
+  cout << "Branch definition." << endl;
   
   //Branches definition
   //-----------------------
@@ -396,13 +433,25 @@ int main(int argc, char** argv)
   tree->Branch("Pulser_charge",&Pulser_charge,"Pulser_charge/D");
 
   tree->Branch("MyEventInfo_fBit",&EventInfo_fBit);
+
+  tree->Branch("br56ca",&br56ca);
+  tree->Branch("br55ca",&br55ca);
+  tree->Branch("br54ca",&br54ca);
+  tree->Branch("br53ca",&br53ca);
+  tree->Branch("br51k",&br51k);
+
+  tree->Branch("sa57ca",&sa57ca);
+  tree->Branch("sa55ca",&sa55ca);
+  tree->Branch("sa54ca",&sa54ca);
+  tree->Branch("sa53ca",&sa53ca);
+  tree->Branch("sa55k",&sa55k);
   /*
   tree->Branch("aoqSamurai_cut",&aoqSamurai_cut);
   tree->Branch("zetSamurai_cut",&zetSamurai_cut);
   tree->Branch("aoqBR_cut",&aoqBR_cut);
   tree->Branch("zetBR_cut",&zetBR_cut);
   */
-  
+  /*
   tree->Branch("br59sc",&br59sc);
   tree->Branch("br58sc",&br58sc);
   tree->Branch("br57sc",&br57sc);
@@ -423,12 +472,15 @@ int main(int argc, char** argv)
   tree->Branch("sa55k",&sa55k);
   tree->Branch("sa51k",&sa51k);
   tree->Branch("sa50ar",&sa50ar);
-  
+  */
   //===== Get parameters for the MINOS ANALYSIS =====
   //-------------------------------------------
   ifstream ConfigFile;
   //ConfigFile.open("../../parameters/MinosVDrift.par");
   ConfigFile.open("/home/koiwai/analysis/db/config_MINOSdrift.txt");
+
+  cout << "Config file-> db/config_MINOSdrift.txt" << endl;
+
   //int HeaderFile;
   int header;
   while(ConfigFile.is_open())
@@ -441,6 +493,8 @@ int main(int argc, char** argv)
 	break;
     }
   ConfigFile.close();
+
+  cout << "Config file closed" << endl;
 
   cout << endl;
   cout << " *** MINOS Configuration Parameters *** " << endl;
@@ -458,12 +512,12 @@ int main(int argc, char** argv)
   //Main loop over the events
   //----------------------------------------------------------
   while(estore->GetNextEvent()&&neve<1000000)
-    //while(estore->GetNextEvent() && neve<100000)
+  //while(estore->GetNextEvent() && neve<100)
     {
       //if(neve%10000==0)
       //cout << "Event " << neve << "\r" << flush;
       if(neve%100==0) clog << neve/1000 << "k events treated..." << "\r";
-      evtOrig = neve;
+      evtOrig = neve+1;
       //if(neve%1000)tree->AutoSave();
       
       //get the event and run number
@@ -553,6 +607,18 @@ int main(int argc, char** argv)
        grxz.clear();
        gryz.clear();
 
+       br56ca = kFALSE;
+       br55ca = kFALSE;
+       br54ca = kFALSE;
+       br53ca = kFALSE;
+       br51k  = kFALSE;
+
+       sa57ca = kFALSE;
+       sa55ca = kFALSE;
+       sa54ca = kFALSE;
+       sa53ca = kFALSE;
+       sa55k  = kFALSE;
+       /*
        br59sc = 0;
        br58sc = 0;
        br57sc = 0;
@@ -574,7 +640,7 @@ int main(int argc, char** argv)
        sa55k  = 0;
        sa51k  = 0;
        sa50ar = 0;
-       
+       */
        //Making MINOS Reconstruction
        CalibMINOS->ClearData();
        CalibMINOS->ReconstructData();
@@ -600,13 +666,25 @@ int main(int argc, char** argv)
        //tfrag->GetEntry(neve);
        trb->GetEntry(neve);
 
+       if(cbr56ca->IsInside(aoqBR,zetBR)){ br56ca = kTRUE; BRCutBool = true; }
+       if(cbr55ca->IsInside(aoqBR,zetBR)){ br55ca = kTRUE; BRCutBool = true; }
+       if(cbr54ca->IsInside(aoqBR,zetBR)){ br54ca = kTRUE; BRCutBool = true; }
+       if(cbr53ca->IsInside(aoqBR,zetBR)){ br53ca = kTRUE; BRCutBool = true; }
+       if(cbr51k->IsInside(aoqBR,zetBR)) { br51k  = kTRUE; BRCutBool = true; }
+
+       if(csa57ca->IsInside(aoqSA,zetSA)){ sa57ca = kTRUE; SACutBool = true; }
+       if(csa55ca->IsInside(aoqSA,zetSA)){ sa55ca = kTRUE; SACutBool = true; }
+       if(csa54ca->IsInside(aoqSA,zetSA)){ sa54ca = kTRUE; SACutBool = true; }
+       if(csa53ca->IsInside(aoqSA,zetSA)){ sa53ca = kTRUE; SACutBool = true; }
+       if(csa55k->IsInside(aoqSA,zetSA)) { sa55k  = kTRUE; SACutBool = true; }
+
        /*
        if(br59sc_C==1||br58sc_C==1||br57sc_C==1||br56sc_C==1||br56ca_C==1||br55ca_C==1||br54ca==1||br55k==1||br51k==1)
 	 BRCutBool = true;
        if(sa59sc_C==1||sa58sc_C==1||sa57sc_C==1||sa56sc_C==1||sa56ca_C==1||sa55ca_C==1||sa54ca_C==1||sa53ca_C==1||sa55k==1||sa51k==1||sa50ar==1)
 	 SACutBool = true;
        */
-       
+       /*
        if(cbr59sc->IsInside(aoqBR,zetBR))     { br59sc = 1; BRCutBool = true; }
        else if(cbr58sc->IsInside(aoqBR,zetBR)){	br58sc = 1; BRCutBool = true; }
        else if(cbr57sc->IsInside(aoqBR,zetBR)){	br57sc = 1; BRCutBool = true; }
@@ -627,7 +705,7 @@ int main(int argc, char** argv)
        else if(csa55k->IsInside(aoqSA,zetSA)) { sa55k  = 1; SACutBool = true; }
        else if(csa51k->IsInside(aoqSA,zetSA)) { sa51k  = 1; SACutBool = true; }
        else if(csa50ar->IsInside(aoqSA,zetSA)){ sa50ar = 1; SACutBool = true; }
-       
+       */
 //       if(samcut1->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
 //       else if(samcut2->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
 //       else if(samcut3->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
@@ -641,6 +719,7 @@ int main(int argc, char** argv)
 	   neve++;
 	   continue;
 	 }
+       
        //aoqSamurai_cut=aoqSamurai;
        //zetSamurai_cut=zetSamurai;
        //aoqBR_cut=aoq37_313;

@@ -15,7 +15,8 @@ void histo_differential(const char* histname){
   int xmin   = h->GetXaxis()->GetXmin();
   int xmax   = h->GetXaxis()->GetXmax();
   
-  int bin_content[numbin] = {0};
+  //int bin_content[numbin] = {0};
+  int bin_content[800] = {0};
 
   TH1F *h_diff = new TH1F("h_diff","h_diff",numbin,xmin,xmax);
   
@@ -32,7 +33,15 @@ void histo_differential(const char* histname){
   cc->cd(2);
   h_diff->Draw();
   
-  
+  TCanvas *c1 = new TCanvas("c1","c1",600,400);
+  h_diff->Clone("h1");
+  h1->GetXaxis()->SetRangeUser(2000,4000);
+  h1->Draw();
+
+  TCanvas *c2 = new TCanvas("c2","c2",600,400);
+  h_diff->Clone("h2");
+  h2->GetXaxis()->SetRangeUser(10000,12000);
+  h2->Draw();
   
 
 			 

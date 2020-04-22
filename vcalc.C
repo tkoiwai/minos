@@ -1,19 +1,25 @@
-void vcalc(){
-  cout << "usage: calc(int RUN NUMBER)" << endl; 
-}
+//void vcalc(){
+//  cout << "usage: calc(int RUN NUMBER)" << endl; 
+//}
+//
+void vcalc(int runnum){
 
-void calc(int runnum){
+  cout << "drift velocity for RUN " << runnum << endl;
+  
   TFile *driftV = TFile::Open(Form("/home/koiwai/analysis/rootfiles/minos/driftV/driftVminos%04d.root",runnum));
   dvtr->Draw("t_ns>>h(400,1000,13000)");
+  int h_max  = h->GetXaxis()->GetXmax();
+  int h_min  = h->GetXaxis()->GetXmin();
+  int numbin = h->GetNbinsX();
   double y[400] = {0};
   double t[400] = {0};
-  for(int i=0;i<400;i++){
+  for(int i=0;i<numbin;i++){
     y[i] = abs(h->GetBinContent(i+1) - h->GetBinContent(i));
-    t[i] = 1100 + 30*i + 15;
+    t[i] = 1000 + (h_max-h_min)/numbin*i + (h_max-h_min)/numbin/2;
   }
   int tmin_trig, tmax_trig;
 
-  for(int i=1;i<400;i++){
+  for(int i=1;i<numbin;i++){
     if(y[i]>200){
       for(int j=i;j<i+20;j++){
 	if((y[j]-y[j-1]<0)){
@@ -26,7 +32,7 @@ void calc(int runnum){
     }
     else continue;
   }
-  for(int i=1;i<400;i++){
+  for(int i=100;i<numbin;i++){
     if(y[i]>500){
       for(int j=i;j<i+20;j++){
 	if((y[j]-y[j-1]<0)){
@@ -40,12 +46,12 @@ void calc(int runnum){
     else continue;
   }
 
-  //cout << "tmin_trig " << tmin_trig << endl;
-  //cout << "tmax_trig " << tmax_trig << endl;
+  cout << "tmin_trig " << tmin_trig << endl;
+  cout << "tmax_trig " << tmax_trig << endl;
   
-  t[0] = 1100 + 15;
+  t[0] = h_min + (h_max-h_min)/numbin/2;
   y[0] = 0;
-  int n = 400;
+  int n = numbin;
   TGraph *gr = new TGraph(n,t,y);
   gr->SetName("gr");
   gr->SetTitle("differencial of Tpad");
@@ -73,13 +79,15 @@ void calc(int runnum){
   func_max->SetParLimits(2,30,90);
   gr->Fit("func_max");
   
-  //cout << "Tmin " << func_min->GetParameter(1) << endl;
-  //cout << "Tmax " << func_max->GetParameter(1) << endl;
-  //cout << "Drift V " << 300/(func_max->GetParameter(1)-func_min->GetParameter(1)) << endl;
+  cout << "Tmin " << func_min->GetParameter(1) << endl;
+  cout << "Tmax " << func_max->GetParameter(1) << endl;
+  cout << "Drift V " << 300/(func_max->GetParameter(1)-func_min->GetParameter(1)) << endl;
+
+  double lengTPC = 300.;
 
   ofstream fout("/home/koiwai/analysis/db/config_MINOSdrift.txt",ios::app);
   fout << runnum << "  " << func_min->GetParameter(1) <<  " " << func_max->GetParameter(1)
-       << " " << 300./(func_max->GetParameter(1)-func_min->GetParameter(1)) << endl;
+       << " " << lengTPC/(func_max->GetParameter(1)-func_min->GetParameter(1)) << endl;
 
 
   

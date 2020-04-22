@@ -48,6 +48,8 @@
 #include <TFitter.h>
 #include <time.h>
 #include "/home/koiwai/analysis/include/liboffline/TMinosClust.h"
+#include "/usr/local/root5.34/include/root/Math/Vector3D.h"
+
 
 using namespace std;
 using namespace ROOT::Math;
@@ -72,6 +74,8 @@ int main(int argc, char** argv)
   Int_t FileNum = TString(argv[1]).Atoi();
   char* ridffile;
   ridffile = Form("/home/koiwai/analysis/ridf/sdaq02/run%04d.ridf.gz",FileNum);
+  
+  cout << "RIDF file -> " << ridffile << endl;
 
   TArtStoreManager *sman = TArtStoreManager::Instance();
    
@@ -134,6 +138,8 @@ int main(int argc, char** argv)
   
   while(estore->GetNextEvent()&& neve<50000)
     {
+      //cout << "neve " << neve << endl;
+      
       if(neve%100==0) clog << neve/1000 << "k events treated..." << "\r";
       
       //===== Clear & Reset variables =====
@@ -150,7 +156,7 @@ int main(int argc, char** argv)
       fitbool = false;
       for(int ii=0; ii<18; ii++) Rpadnumber[ii] = 0;
       Rpadnumber_max=0;
-
+      
       //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       //===== Making MINOS OFFLINE Reconstruction =====
       CalibMINOS->ClearData();
@@ -159,14 +165,19 @@ int main(int argc, char** argv)
       TArtCalibMINOSData *minos = new TArtCalibMINOSData();
       //1:MINOS://///////////////// Filling vectors with (x,y) information ///////////////////:MINOS://
       //Get the maximum charge from the wave form and count the number of pads in each ring
-
+      
+      //if(CalibMINOS->GetNumCalibMINOS()!=0) {cout << "NumCalibMINOS !=0" << endl; break;}
+      
       for(Int_t i=0;i<CalibMINOS->GetNumCalibMINOS();i++) //number of pads
 	{
+	  //cout << "GetNumCalibMINOS() " << CalibMINOS->GetNumCalibMINOS() << endl;
 	  minos = CalibMINOS->GetCalibMINOS(i);
 	  maxCharge = 0.;
 	  x_mm = minos->GetX();
 	  y_mm = minos->GetY();
 	  r_mm = sqrt(x_mm*x_mm + y_mm*y_mm);
+
+	  //cout << "x_mm " << x_mm << endl;
 	  
 	  if(minos->GetDetID() != 0) continue; //0 for TPC, 1&2 for DSSSD, only analyse TPC 
 	  if( !(abs(x_mm)<0.01 && abs(y_mm)<0.01) )// NON connected MINOS channels...

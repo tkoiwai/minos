@@ -73,47 +73,48 @@ int main(int argc, char *argv[]){
   caltrM->SetBranchAddress("parFit3",&p2);
   caltrM->SetBranchAddress("parFit4",&p3);
   caltrM->SetBranchAddress("NumberTracks",&tracknum);
-
+  /*
   caltrM->SetBranchAddress("br56ca",&br56ca);
   caltrM->SetBranchAddress("br56sc",&br56sc);
   caltrM->SetBranchAddress("br54ca",&br54ca);
   caltrM->SetBranchAddress("sa55ca",&sa55ca);
   caltrM->SetBranchAddress("sa55k",&sa55k);
   caltrM->SetBranchAddress("sa53ca",&sa53ca);
-  
+  */
   //------------------------------
   //===== Load input DC file =====
-  TString infnameDC = Form("/home/koiwai/analysis/rootfiles/ana/mwdc/ana_mwdc%04d.root",filenum);
+  TString infnameDC = Form("/home/koiwai/analysis/rootfiles/ana/mwdc/anaDC%04d.root",filenum);
   TFile   *infileDC = TFile::Open(infnameDC);
   TTree   *anatrDC;
   infileDC->GetObject("anatrDC",anatrDC);
 
   //===== Input tree variables =====
-  Int_t EventNumber_dc, RunNumber_dc;
+  Long64_t EventNumber_dc;
+  Int_t RunNumber_dc;
 
   Double_t BDC1_X, BDC1_Y;
   Double_t BDC2_X, BDC2_Y;
-  Double_t BDC_X, BDC_Y, BDC_A, BDC_B;
+  //Double_t BDC_X, BDC_Y, BDC_A, BDC_B;
   Double_t Target_X, Target_Y;
 
-  Int_t BG_flag_dc;
+  //Int_t BG_flag_dc;
 
   
   //===== SetBranchAddress =====
-  anatrDC->SetBranchAddress("EventNum",&EventNumber_dc);
-  anatrDC->SetBranchAddress("RunNum",&RunNumber_dc);
+  anatrDC->SetBranchAddress("EventNumber",&EventNumber_dc);
+  anatrDC->SetBranchAddress("RunNumber",&RunNumber_dc);
 
   anatrDC->SetBranchAddress("BDC1_X",&BDC1_X);
   anatrDC->SetBranchAddress("BDC1_Y",&BDC1_Y);
   anatrDC->SetBranchAddress("BDC2_X",&BDC2_X);
   anatrDC->SetBranchAddress("BDC2_Y",&BDC2_Y);
-  anatrDC->SetBranchAddress("BDC_X",&BDC_X);
-  anatrDC->SetBranchAddress("BDC_Y",&BDC_Y);
-  anatrDC->SetBranchAddress("BDC_A",&BDC_A);
-  anatrDC->SetBranchAddress("BDC_B",&BDC_B);
+  //anatrDC->SetBranchAddress("BDC_X",&BDC_X);
+  //anatrDC->SetBranchAddress("BDC_Y",&BDC_Y);
+  //anatrDC->SetBranchAddress("BDC_A",&BDC_A);
+  //anatrDC->SetBranchAddress("BDC_B",&BDC_B);
   anatrDC->SetBranchAddress("Target_X",&Target_X);
   anatrDC->SetBranchAddress("Target_Y",&Target_Y);
-  anatrDC->SetBranchAddress("BG_flag",&BG_flag_dc);
+  //anatrDC->SetBranchAddress("BG_flag",&BG_flag_dc);
 
   //===== Load input Beam file =====
   TString infnameB = Form("/home/koiwai/analysis/rootfiles/ana/beam/ana_beam%04d.root",filenum);
@@ -181,7 +182,8 @@ int main(int argc, char *argv[]){
   //===== Load .dat files =====
   
   //===== Create output file/tree =====
-  TString ofname = Form("/home/koiwai/analysis/rootfiles/minos/vertex/vertex%04d.root",filenum);
+  //TString ofname = Form("/home/koiwai/analysis/rootfiles/minos/vertex/vertex%04d.root",filenum);
+  TString ofname = Form("/home/koiwai/analysis/minos/vertex%04dtest.root",filenum);
   TFile   *outf  = new TFile(ofname,"RECREATE");
   TTree   *tr    = new TTree("tr","tr");
 
@@ -253,7 +255,7 @@ int main(int argc, char *argv[]){
 
   
   tr->Branch("theta2p",&theta2p);
-  
+  /*
   tr->Branch("br56ca",&br56ca);
   tr->Branch("br56sc",&br56sc);
   //tr->Branch("br55ca",&br55ca);
@@ -266,10 +268,11 @@ int main(int argc, char *argv[]){
   tr->Branch("sa53ca",&sa53ca);
   //tr->Branch("sa52ca",&sa52ca);
   tr->Branch("sa55k",&sa55k);
-
+  */
   //===== Begin LOOP =====
   int nEntry = caltrM->GetEntries();
-  for(int iEntry=0;iEntry<nEntry;iEntry++){
+ for(int iEntry=0;iEntry<nEntry;iEntry++){
+  //for(int iEntry=0;iEntry<10000;iEntry++){
 
     if(iEntry%100==0) clog << iEntry/1000 << "k events treated..." << "\r";
     caltrM->GetEntry(iEntry);
@@ -380,10 +383,20 @@ int main(int argc, char *argv[]){
     ya = p2a + p3a*za;
     yb = p2b + p3b*zb;
 
+
+    //cout << endl;
+    //cout << "za = " << za << endl;
+    //cout << "zb = " << zb << endl;
+
+    
     vertexX = (xa + xb)/2.;
     vertexY = (ya + yb)/2.;
     vertexZ = (za + zb)/2.;
 
+    //cout << "z = " << vertexZ << endl;
+    //cout << "truck num: " << tracknum << endl; 
+    //cout << endl;
+    
     vertexR     = Sqrt(vertexX*vertexX + vertexY*vertexY + vertexZ*vertexZ);
     vertexTheta = ACos(vertexZ/vertexR) *180./PI;
     vertexPhi   = ACos(vertexX/vertexR/Sin(vertexTheta)) *180./PI;
