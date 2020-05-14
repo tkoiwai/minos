@@ -69,6 +69,9 @@
 #include "TArtRawFeminosDataObject.hh"
 #include "TCutG.h"
 #include "TApplication.h"
+
+#include "/home/koiwai/analysis/include/time_tk.h"
+
 using namespace std;
 using namespace ROOT::Math;
 
@@ -100,13 +103,16 @@ void stop_interrupt()
 
 Int_t main(Int_t argc, char** argv)
 {
+
+  initiate_timer_tk();
+  
   const char *ROOTFILEDIR = "/home/koiwai/analysis/rootfiles/";
   const char *RIDFFILEDIR = "/home/koiwai/analysis/ridf/sdaq02/";
   
   Bool_t IsChTrue(Int_t,Int_t);
 
-  time_t start,stop;
-  time(&start);
+  //time_t start,stop;
+  //time(&start);
 
   // Input handling
   Int_t RunNumber; 
@@ -131,7 +137,7 @@ Int_t main(Int_t argc, char** argv)
 
   // Defining outfile
   string rootfileout; 
-  char  *minosdir="/home/koiwai/analysis/rootfiles/minos/cal_new";
+  char  *minosdir="/home/koiwai/analysis/rootfiles/minos/cal_new/";
   if (gSystem->OpenDirectory(minosdir) == 0){
     cerr << " ERROR - '" << minosdir << "' does not exist '" << "\n\n";
     exit(EXIT_FAILURE);
@@ -288,12 +294,29 @@ Int_t main(Int_t argc, char** argv)
   cout<< "-----------------------------------------------"<<endl;
   cout << "Conversion started (Wait a few seconds for display) " << endl;
   cout<< "-----------------------------------------------"<<endl;
+
+  prepare_timer_tk();
+  
   Int_t neve = 0;
 
-  while(estore->GetNextEvent()&&neve<100){
+  cout << argc << endl;
+
+  int nEntry;
+  if(argc == 3)
+    nEntry = atoi(argv[2]);
+  else if(argc == 2)
+    nEntry = 100000;
+  cout << "You will process " << nEntry << " events.\n"  << endl;
+
+  while(estore->GetNextEvent()&&neve<nEntry){
   //while(estore->GetNextEvent() ) {
-    if(neve%1000==0)
-      cout << "Event " << neve << "\r" << flush;
+
+    start_timer_tk(neve,nEntry,10);
+    
+    //if(neve%1000==0)
+    //  cout << "Event " << neve << "\r" << flush;
+
+    
     evtOrig = neve;
 
     //cout << "ok1" << endl;
@@ -377,7 +400,7 @@ Int_t main(Int_t argc, char** argv)
 	  if(minos->GetCalibValue(j)>maxCharge) maxCharge = minos->GetCalibValue(j);
 	}
 	Pulser_charge = maxCharge;
-	cout << "MAX_charge 1 :" << max_charge << endl;
+	cout << "MAX_charge 1 :" << maxCharge << endl;
       }
     }
 
@@ -398,8 +421,11 @@ Int_t main(Int_t argc, char** argv)
       else {
 	if(!(abs(x_mm)<0.0001 && abs(y_mm)<0.0001) ){  // NON connected MINOS (TPC) channels...
 	  for(Int_t j=0; j<minos->GetNData(); j++){    // Loop over samples
-	    if(minos->GetCalibValue(j)>maxCharge)
+	    if(minos->GetCalibValue(j)>maxCharge){
 	      maxCharge = minos->GetCalibValue(j);     //get max charge of each pad
+	      Pulser_charge = maxCharge;
+	      //cout << "MAX_charge 2 :" << maxCharge << endl;
+	    }
 	  }
 	  if(maxCharge>=MINOSthresh){ //if above threshold
 	    Xpad.push_back(x_mm);
@@ -742,9 +768,12 @@ Int_t main(Int_t argc, char** argv)
   fout->Close();
   cout<<"Conversion to Root done!"<<endl;
 
-  time(&stop);
-  printf("Elapsed time: %.1f seconds\n",difftime(stop,start));
+  //time(&stop);
+  //printf("Elapsed time: %.1f seconds\n",difftime(stop,start));
 
+  stop_timer_tk(nEntry);
+  cout << "AnalyzerMINOS: run " << RunNumber << " finished!: tkok" << endl;
+  
   return 0;
 
 }
