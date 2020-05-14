@@ -288,8 +288,8 @@ int main(int argc, char** argv)
 
 
   
-  TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/cal_new/cal_minos%04d.root",FileNum);
-  //TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/test/cal_minos%04d.root",FileNum);
+  //TString rootfile = Form("/home/koiwai/analysis/rootfiles/minos/cal_new/cal_minos%04d.root",FileNum);
+  TString rootfile = Form("/home/koiwai/analysis/minos/testcal_minos%04d.root",FileNum);
   TFile *fout = new TFile(rootfile,"RECREATE");
   TTree *tree = new TTree("caltrM","caltrM");
 
@@ -511,8 +511,8 @@ int main(int argc, char** argv)
 
   //Main loop over the events
   //----------------------------------------------------------
-  while(estore->GetNextEvent()&&neve<1000000)
-  //while(estore->GetNextEvent() && neve<100)
+  //while(estore->GetNextEvent()&&neve<1000000)
+  while(estore->GetNextEvent() && neve<1000)
     {
       //if(neve%10000==0)
       //cout << "Event " << neve << "\r" << flush;
@@ -713,12 +713,21 @@ int main(int argc, char** argv)
 //       else if(samcut5->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
 //       else if(samcut6->IsInside(aoqSamurai,zetSamurai)) samCutBool = true;
        //if(aoqSamurai>2.5 && aoqSamurai<3.1 && zetSamurai>15.5 && zetSamurai<25 ) samCutBool = true;
+
+
+
        
-       if((SACutBool==false)||(BRCutBool==false)){
-	   tree->Fill();
-	   neve++;
-	   continue;
-	 }
+       //=== remove // to anable PID selection =========================================================================================================
+       
+       //f((SACutBool==false)||(BRCutBool==false)){
+       //   tree->Fill();
+       //   neve++;
+       //   continue;
+       // }
+
+       //=== remove // to anable PID selection =========================================================================================================
+
+
        
        //aoqSamurai_cut=aoqSamurai;
        //zetSamurai_cut=zetSamurai;
