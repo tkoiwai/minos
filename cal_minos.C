@@ -512,11 +512,11 @@ int main(int argc, char** argv)
   //Main loop over the events
   //----------------------------------------------------------
   //while(estore->GetNextEvent()&&neve<1000000)
-  while(estore->GetNextEvent() && neve<1000)
+  while(estore->GetNextEvent())
     {
       //if(neve%10000==0)
       //cout << "Event " << neve << "\r" << flush;
-      if(neve%100==0) clog << neve/1000 << "k events treated..." << "\r";
+      if(neve%1000==0) clog << neve/1000 << "k events treated..." << "\r";
       evtOrig = neve+1;
       //if(neve%1000)tree->AutoSave();
       
