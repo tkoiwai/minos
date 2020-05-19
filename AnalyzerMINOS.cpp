@@ -305,7 +305,7 @@ Int_t main(Int_t argc, char** argv)
   if(argc == 3)
     nEntry = atoi(argv[2]);
   else if(argc == 2)
-    nEntry = 100000;
+    nEntry = 1000000;
   cout << "You will process " << nEntry << " events.\n"  << endl;
 
   while(estore->GetNextEvent()&&neve<nEntry){
