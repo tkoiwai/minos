@@ -98,45 +98,17 @@ int main(int argc, char *argv[]){
   anatrDC->SetBranchAddress("Target_X",&Target_X);
   anatrDC->SetBranchAddress("Target_Y",&Target_Y);
 
-  //===== Load input Beam file =====
-  TString infnameB = Form("/home/koiwai/analysis/rootfiles/ana/beam/ana_beam%04d.root",filenum);
-  TFile   *infileB = TFile::Open(infnameB);
-  TTree   *anatrB;
-  infileB->GetObject("anatrB",anatrB);
 
-
-  Double_t zetBR, aoqBR;
-
-  anatrB->SetBranchAddress("zetBR",&zetBR);
-  anatrB->SetBranchAddress("aoqBR",&aoqBR);
-
-
-  //===== Load input smri file =====
-  TString infnameS = Form("/home/koiwai/analysis/rootfiles/ana/smri/ana_smri%04d.root",filenum);
-  TFile   *infileS = TFile::Open(infnameS);
-  TTree   *anatrS;
-  infileS->GetObject("anatrS",anatrS);
-
-
-  Double_t zetSA, aoqSA;
-
-  anatrS->SetBranchAddress("zetSA",&zetSA);
-  anatrS->SetBranchAddress("aoqSA",&aoqSA);
-  
-  
   //===== AddFriend =====
   caltrM->AddFriend(anatrDC);
-  caltrM->AddFriend(anatrB);
-  caltrM->AddFriend(anatrS);
-  
 
   //===== Load cut files =====
 
   //===== Load .dat files =====
   
   //===== Create output file/tree =====
-  TString ofname = Form("/home/koiwai/analysis/rootfiles/minos/vertex/vertex%04d.root",filenum);
-  //TString ofname = Form("/home/koiwai/analysis/minos/vertex%04dtest.root",filenum);
+  //TString ofname = Form("/home/koiwai/analysis/rootfiles/minos/vertex/vertex%04d.root",filenum);
+  TString ofname = Form("/home/koiwai/analysis/minos/vertex%04dtest.root",filenum);
   TFile   *outf  = new TFile(ofname,"RECREATE");
   TTree   *tr    = new TTree("tr","tr");
 
@@ -147,13 +119,10 @@ int main(int argc, char *argv[]){
 
   //===== Declare variables =====
   Double_t bdc_dx, bdc_dy;
-
   Double_t p0beam, p1beam, p2beam, p3beam;
 
-  
-
   //===== Declare tree variables =====
-  Int_t runnum, eventnum;
+  Int_t RunNumber, EventNumber;
 
   Double_t vertexX, vertexY, vertexZ;
   Double_t vertexR, vertexTheta, vertexPhi;
@@ -166,10 +135,8 @@ int main(int argc, char *argv[]){
   Double_t theta2p;
 
   //===== Create tree Branch =====
-  tr->Branch("runnum",&runnum);
-  tr->Branch("eventnum",&eventnum);
-
-  //tr->Branch("NumberTracks","tracknum");
+  tr->Branch("RunNumber",&RunNumber);
+  tr->Branch("EventNumber",&EventNumber);
 
   tr->Branch("vertexX",&vertexX);
   tr->Branch("vertexY",&vertexY);
@@ -177,7 +144,6 @@ int main(int argc, char *argv[]){
   tr->Branch("vertexR",&vertexR);
   tr->Branch("vertexTheta",&vertexTheta);
   tr->Branch("vertexPhi",&vertexPhi);
-
   
   tr->Branch("theta2p",&theta2p);
 
@@ -301,3 +267,37 @@ int main(int argc, char *argv[]){
   time(&stop);
   printf("Elapsed time: %.1f seconds\n",difftime(stop,start));
 }//main()
+
+
+
+void Vertex(double *p, double *pp, double &xv,double &yv,double &zv, double &min_dist)
+{
+  double a1 = p[0];
+  double a2 = p[2];
+  double b1 = p[1];
+  double b2 = p[3];
+  double ap1 = pp[0];
+  double ap2 = pp[2];
+  double bp1 = pp[1];
+  double bp2 = pp[3];
+  double alpha, beta, A, B, C;
+  alpha = (bp1*(a1-ap1)+bp2*(a2-ap2))/(bp1*bp1 + bp2*bp2 + 1);
+  beta = (bp1*b1+bp2*b2+1)/(bp1*bp1 + bp2*bp2 + 1);
+  A = beta*(bp1*bp1 + bp2*bp2 + 1) - (bp1*b1 + bp2*b2 + 1);
+  B = (b1*b1 + b2*b2 + 1) - beta*(bp1*b1+bp2*b2+1);
+  C = beta*(bp1*(ap1-a1) + bp2*(ap2-a2)) - (b1*(ap1-a1) + b2*(ap2-a2));
+  double sol1, solf1;
+  double x,y,z,xp,yp,zp;
+  sol1 = -(A*alpha + C)/(A*beta + B);
+  solf1 = alpha + beta* sol1;
+  x = a1 + b1*sol1;
+  y = a2 + b2*sol1;
+  z = sol1;
+  xp = ap1 + bp1*solf1;
+  yp = ap2 + bp2*solf1;
+  zp = solf1;
+  xv = (x+xp)/2.;
+  yv = (y+yp)/2.;
+  zv = (z+zp)/2.;
+  min_dist = sqrt(pow((x-xp),2) + pow((y-yp),2) + pow((z-zp),2));
+}
