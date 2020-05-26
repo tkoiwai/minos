@@ -36,13 +36,15 @@
 #include "/home/koiwai/analysis/include/liboffline/Tracking.h"
 #include "/home/koiwai/analysis/include/liboffline/TMinosClust.h"
 #include "/home/koiwai/analysis/include/liboffline/TMinosResult.h"
+
+#include "/home/koiwai/analysis/include/time_tk.h"
+
 using namespace std;
 using namespace TMath;
 
 int main(int argc, char *argv[]){
   
-  time_t start, stop;
-       time(&start);
+  initiate_timer_tk();
   
   Int_t filenum = TString(argv[1]).Atoi();
 
@@ -147,16 +149,20 @@ int main(int argc, char *argv[]){
   
   tr->Branch("theta2p",&theta2p);
 
-  //===== Begin LOOP =====
-  int nEntry = caltrM->GetEntries();
- for(int iEntry=0;iEntry<nEntry;iEntry++){
-  //for(int iEntry=0;iEntry<10000;iEntry++){
+//===== Begin LOOP =====
 
-    if(iEntry%100==0) clog << iEntry/1000 << "k events treated..." << "\r";
+  prepare_timer_tk();
+
+  int nEntry = caltrM->GetEntries();
+  for(int iEntry=0;iEntry<nEntry;iEntry++){
+   //for(int iEntry=0;iEntry<10000;iEntry++){
+
+    start_timer_tk(iEntly,nEntry,1000);
+    
     caltrM->GetEntry(iEntry);
     
-    runnum   = RunNumber_minos;
-    eventnum = EventNumber_minos;
+    RunNumber   = RunNumber_minos;
+    EventNumber = EventNumber_minos;
 
     //=== Initialization =====
     vertexX     = Sqrt(-1);
@@ -264,8 +270,7 @@ int main(int argc, char *argv[]){
   tr->Write();
   outf->Close();
 
-  time(&stop);
-  printf("Elapsed time: %.1f seconds\n",difftime(stop,start));
+  stop_timer_tk(nEntry);
 }//main()
 
 
