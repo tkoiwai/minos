@@ -204,8 +204,7 @@ int main(int argc, char *argv[]){
     zb = Sqrt(-1);
 
     theta2p = Sqrt(-1);
-
-   
+    
     //=== Calc ===
     p0beam = BDC1_X + bdc_dx/dBDC*d;
     p1beam = bdc_dx/dBDC;
@@ -264,6 +263,66 @@ int main(int argc, char *argv[]){
 
     theta2p = ACos((p1a*p1b + p3a*p3b +1)/(Sqrt(p1a*p1a+p3a*p3a+1)*Sqrt(p1b*p1b+p3b*p3b+1)))*180./PI;
 
+
+
+
+
+
+    //Frank
+
+     // MINOS 
+    if ( parFit1->size() > 0 ){
+      parTrack1[0]=parFit1->at(0); // first track in MINOS
+      parTrack1[1]=parFit2->at(0); // first track in MINOS
+      parTrack1[2]=parFit3->at(0); // first track in MINOS
+      parTrack1[3]=parFit4->at(0); // first track in MINOS
+      // calc track from BDC
+      parTrackBDC[0] = BDC1_X + Dist_BDC1TPC / Dist_BDC1BDC2 * (BDC2_X - BDC1_X);
+      parTrackBDC[2] = BDC1_Y + Dist_BDC1TPC / Dist_BDC1BDC2 * (BDC2_Y - BDC1_Y);
+      parTrackBDC[1] = (BDC2_X - BDC1_X) / Dist_BDC1BDC2;
+      parTrackBDC[3] = (BDC2_Y - BDC1_Y) / Dist_BDC1BDC2;
+      Vertex(parTrack1,parTrackBDC,x_vertexBDC,y_vertexBDC,z_vertexBDC,Dist_minBDC);
+      MINOS_X_BDC = x_vertexBDC;
+      MINOS_Y_BDC = y_vertexBDC;
+      MINOS_Z_BDC = z_vertexBDC;
+      x_vertex = x_vertexBDC ;
+      y_vertex = y_vertexBDC ;
+      z_vertex = z_vertexBDC ;
+      if(parFit1->size() > 1){
+	parTrack2[0]=parFit1->at(1); // second track in MINOS
+	parTrack2[1]=parFit2->at(1); // second track in MINOS
+	parTrack2[2]=parFit3->at(1); // second track in MINOS
+	parTrack2[3]=parFit4->at(1); // second track in MINOS
+	Vertex(parTrack1,parTrack2,x_vertex,y_vertex,z_vertex,Dist_min);
+	TVector3 ptr1(parTrack1[1],parTrack1[3],1);
+	ptr1 = ptr1.Unit();
+	MINOS_tr1_theta = ptr1.Theta()/3.1415927*180.;
+	MINOS_tr1_phi   = ptr1.Phi()/3.1415927*180.;
+	TVector3 ptr2(parTrack2[1],parTrack2[3],1);
+	ptr2 = ptr2.Unit();
+	MINOS_tr2_theta = ptr2.Theta()/3.1415927*180.;
+	MINOS_tr2_phi   = ptr2.Phi()/3.1415927*180.;
+	MINOS_tr_theta  = TMath::ACos( ptr1.Dot(ptr2) )/3.1415927*180.;
+	MINOS_tr_phi    = TMath::Abs(MINOS_tr1_phi - MINOS_tr2_phi);
+	MINOS_tr_phi    = MINOS_tr_phi>180 ? 360-MINOS_tr_phi : MINOS_tr_phi;
+      }
+      MINOS_X = x_vertex;
+      MINOS_Y = y_vertex;
+      MINOS_Z = z_vertex;
+      MINOS_D_min = Dist_min;
+      MINOS_Radius = TMath::Sqrt(x_vertex*x_vertex + y_vertex*y_vertex);
+      MINOS_NumberTracks = NumberTracks;
+    }
+    double TargetLength0 = 150; // in mm
+    double tmpk=4./400.;
+    Target_R = sqrt(Target_X*Target_X+Target_Y*Target_Y);
+    TargetLength = TargetLength0 - tmpk*Target_R*Target_R;
+
+
+
+
+
+    
     tr->Fill();
   }//for LOOP end
   outf->cd();
