@@ -165,8 +165,21 @@ int main(int argc, char *argv[]){
   tr->Branch("vertexR",&vertexR);
   tr->Branch("vertexTheta",&vertexTheta);
   tr->Branch("vertexPhi",&vertexPhi);
-  
   tr->Branch("theta2p",&theta2p);
+
+  tr->Branch("MINOS_X",&MINOS_X);
+  tr->Branch("MINOS_Y",&MINOS_Y);
+  tr->Branch("MINOS_Z",&MINOS_Z);
+  tr->Branch("MINOS_X_BDC",&MINOS_X_BDC);
+  tr->Branch("MINOS_Y_BDC",&MINOS_Y_BDC); 
+  tr->Branch("MINOS_Z_BDC",&MINOS_Z_BDC);
+  tr->Branch("MINOS_D_min",&MINOS_D_min);
+  tr->Branch("MINOS_Radius",&MINOS_Radius);
+  tr->Branch("MINOS_NumberTracks",&MINOS_NumberTracks);
+  tr->Branch("MINOS_tr_phi",&MINOS_tr_phi);
+  tr->Branch("MINOS_tr_theta",&MINOS_tr_theta);
+  tr->Branch("Target_R",&Target_R);
+  tr->Branch("TargetLength",&TargetLength);
 
 //===== Begin LOOP =====
 
@@ -190,7 +203,7 @@ int main(int argc, char *argv[]){
     vertexR     = Sqrt(-1);
     vertexTheta = Sqrt(-1);
     vertexPhi   = Sqrt(-1);
-
+/*
     bdc_dx = BDC2_X - BDC1_X;
     bdc_dy = BDC2_Y - BDC1_Y;
 
@@ -223,15 +236,16 @@ int main(int argc, char *argv[]){
     zb = Sqrt(-1);
 
     theta2p = Sqrt(-1);
-    
+  */  
     //=== Calc ===
+   /*
     p0beam = BDC1_X + bdc_dx/dBDC*d;
     p1beam = bdc_dx/dBDC;
     p2beam = BDC1_Y + bdc_dy/dBDC*d;
     p3beam = bdc_dy/dBDC;
 
     double p[4], pp[4];
-    
+   */ 
 /*
     if(tracknum==1){  
       p0a = p0beam;
