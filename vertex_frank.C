@@ -42,6 +42,8 @@
 using namespace std;
 using namespace TMath;
 
+void Vertex(double *p, double *pp, double &xv,double &yv,double &zv, double &min_dist);
+
 int main(int argc, char *argv[]){
   
   initiate_timer_tk();
@@ -58,21 +60,22 @@ int main(int argc, char *argv[]){
 
   //===== Input tree variables =====
   Int_t EventNumber_minos, RunNumber_minos;
-  vector<double> *p0 = 0; // x = p0 + p1*z
-  vector<double> *p1 = 0;
-  vector<double> *p2 = 0; // y = p2 + p3*z
-  vector<double> *p3 = 0;
-  Int_t tracknum;
+  vector<double> *parFit1 = 0; // x = p0 + p1*z
+  vector<double> *parFit2 = 0;
+  vector<double> *parFit3 = 0; // y = p2 + p3*z
+  vector<double> *parFit4 = 0;
+  Int_t NumberTracks;
 
   //===== SetBranchAddress =====
   caltrM->SetBranchAddress("EventNumber",&EventNumber_minos);
   caltrM->SetBranchAddress("RunNumber",&RunNumber_minos);
 
-  caltrM->SetBranchAddress("parFit1",&p0);
-  caltrM->SetBranchAddress("parFit2",&p1);
-  caltrM->SetBranchAddress("parFit3",&p2);
-  caltrM->SetBranchAddress("parFit4",&p3);
-  caltrM->SetBranchAddress("NumberTracks",&tracknum);
+  //caltrM->SetBranchAddress("parFit1",&p0);
+  caltrM->SetBranchAddress("parFit1",&parFit1);
+  caltrM->SetBranchAddress("parFit2",&parFit2);
+  caltrM->SetBranchAddress("parFit3",&parFit3);
+  caltrM->SetBranchAddress("parFit4",&parFit4);
+  caltrM->SetBranchAddress("NumberTracks",&NumberTracks);
 
   //------------------------------
   //===== Load input DC file =====
@@ -116,7 +119,9 @@ int main(int argc, char *argv[]){
 
   //===== Declare const.s =====
   Double_t d = 2310.31; // [mm]: BDC1 - MINOS entrance.
+  Double_t Dist_BDC1TPC = 2310.31; // [mm]: BDC1 - MINOS entrance.
   Double_t dBDC = 999.53 ; // [mm]: BDC1 - BDC2.
+  Double_t Dist_BDC1BDC2 = 999.53 ; // [mm]: BDC1 - BDC2.
   Double_t PI = TMath::Pi();
 
   //===== Declare variables =====
@@ -135,6 +140,20 @@ int main(int argc, char *argv[]){
   Double_t xa, xb, ya, yb, za, zb;
   
   Double_t theta2p;
+
+  //===== Declare variables for Frank's part =====
+
+  Double_t parTrack1[4], parTrack2[4], parTrackBDC[4];
+  Double_t x_vertexBDC, y_vertexBDC, z_vertexBDC;
+  Double_t x_vertex, y_vertex, z_vertex;
+  Double_t MINOS_X_BDC, MINOS_Y_BDC, MINOS_Z_BDC;
+  Double_t MINOS_X, MINOS_Y, MINOS_Z, MINOS_D_min;
+  Double_t Dist_minBDC, Dist_min;
+  Double_t MINOS_tr1_phi, MINOS_tr1_theta, MINOS_tr2_phi, MINOS_tr2_theta, MINOS_tr_phi, MINOS_tr_theta;
+  Double_t MINOS_Radius;
+  Int_t MINOS_NumberTracks;
+  Double_t Target_R, TargetLength;
+
 
   //===== Create tree Branch =====
   tr->Branch("RunNumber",&RunNumber);
@@ -157,7 +176,7 @@ int main(int argc, char *argv[]){
   for(int iEntry=0;iEntry<nEntry;iEntry++){
    //for(int iEntry=0;iEntry<10000;iEntry++){
 
-    start_timer_tk(iEntly,nEntry,1000);
+    start_timer_tk(iEntry,nEntry,1000);
     
     caltrM->GetEntry(iEntry);
     
@@ -213,7 +232,7 @@ int main(int argc, char *argv[]){
 
     double p[4], pp[4];
     
-
+/*
     if(tracknum==1){  
       p0a = p0beam;
       p1a = p1beam;
@@ -262,10 +281,7 @@ int main(int argc, char *argv[]){
     vertexPhi   = ACos(vertexX/vertexR/Sin(vertexTheta)) *180./PI;
 
     theta2p = ACos((p1a*p1b + p3a*p3b +1)/(Sqrt(p1a*p1a+p3a*p3a+1)*Sqrt(p1b*p1b+p3b*p3b+1)))*180./PI;
-
-
-
-
+*/
 
 
     //Frank
