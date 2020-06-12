@@ -113,7 +113,7 @@ int main(int argc, char *argv[]){
   
   //===== Create output file/tree =====
   //TString ofname = Form("/home/koiwai/analysis/rootfiles/minos/vertex/vertex%04d.root",filenum);
-  TString ofname = Form("/home/koiwai/analysis/minos/vertex%04dtest.root",filenum);
+  TString ofname = Form("/home/koiwai/analysis/minos/vertex%04dtest_frank.root",filenum);
   TFile   *outf  = new TFile(ofname,"RECREATE");
   TTree   *tr    = new TTree("tr","tr");
 

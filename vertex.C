@@ -48,10 +48,11 @@ int main(int argc, char *argv[]){
 
   //---------------------------------
   //===== Load input MINOS file =====
-  TString infnameM = Form("/home/koiwai/analysis/rootfiles/minos/cal/cal_minos%04d.root",filenum);
+  //TString infnameM = Form("/home/koiwai/analysis/rootfiles/minos/cal/cal_minos%04d.root",filenum);
+  TString infnameM = Form("/home/koiwai/analysis/minos/Tracks_run_%04d.root",filenum);
   TFile   *infileM = TFile::Open(infnameM);
   TTree   *caltrM;
-  infileM->GetObject("caltrM",caltrM);
+  infileM->GetObject("tree",caltrM);
 
   //===== Input tree variables =====
   Int_t EventNumber_minos, RunNumber_minos;
