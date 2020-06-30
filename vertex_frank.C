@@ -55,17 +55,17 @@ int main(int argc, char *argv[]) {
   //TString infnameM = Form("/home/koiwai/analysis/rootfiles/minos/cal/cal_minos%04d.root",filenum);
   //TString infnameM = Form("/home/koiwai/analysis/rootfiles/minos/cal/cal_minos%04d.root",filenum);
   TString infnameM = Form("/home/koiwai/analysis/rootfiles/minos/cal_new/Tracks_run_%04d.root", filenum);
-  TFile *infileM = TFile::Open(infnameM);
-  TTree *caltrM;
+  TFile * infileM  = TFile::Open(infnameM);
+  TTree * caltrM;
   infileM->GetObject("tree", caltrM);
 
   //===== Input tree variables =====
-  Int_t EventNumber_minos, RunNumber_minos;
+  Int_t           EventNumber_minos, RunNumber_minos;
   vector<double> *parFit1 = 0;  // x = p0 + p1*z
   vector<double> *parFit2 = 0;
   vector<double> *parFit3 = 0;  // y = p2 + p3*z
   vector<double> *parFit4 = 0;
-  Int_t NumberTracks;
+  Int_t           NumberTracks;
 
   //===== SetBranchAddress =====
   caltrM->SetBranchAddress("EventNumber", &EventNumber_minos);
@@ -81,13 +81,13 @@ int main(int argc, char *argv[]) {
   //------------------------------
   //===== Load input DC file =====
   TString infnameDC = Form("/home/koiwai/analysis/rootfiles/ana/mwdc/anaDC%04d.root", filenum);
-  TFile *infileDC = TFile::Open(infnameDC);
-  TTree *anatrDC;
+  TFile * infileDC  = TFile::Open(infnameDC);
+  TTree * anatrDC;
   infileDC->GetObject("anatrDC", anatrDC);
 
   //===== Input tree variables =====
   Long64_t EventNumber_dc;
-  Int_t RunNumber_dc;
+  Int_t    RunNumber_dc;
 
   Double_t BDC1_X, BDC1_Y;
   Double_t BDC2_X, BDC2_Y;
@@ -112,17 +112,17 @@ int main(int argc, char *argv[]) {
   //===== Load .dat files =====
 
   //===== Create output file/tree =====
-  //TString ofname = Form("/home/koiwai/analysis/rootfiles/minos/vertex/vertex%04d.root",filenum);
-  TString ofname = Form("/home/koiwai/analysis/minos/vertex%04dtest_frank.root", filenum);
+  TString ofname = Form("/home/koiwai/analysis/rootfiles/minos/vertex/vertex_frank%04d.root", filenum);
+  //TString ofname = Form("/home/koiwai/analysis/minos/vertex%04dtest_frank.root", filenum);
   TFile *outf = new TFile(ofname, "RECREATE");
-  TTree *tr = new TTree("tr", "tr");
+  TTree *tr   = new TTree("tr", "tr");
 
   //===== Declare const.s =====
-  Double_t d = 2310.31;             // [mm]: BDC1 - MINOS center.
-  Double_t Dist_BDC1TPC = 2310.31;  // [mm]: BDC1 - MINOS center.
-  Double_t dBDC = 999.53;           // [mm]: BDC1 - BDC2.
-  Double_t Dist_BDC1BDC2 = 999.53;  // [mm]: BDC1 - BDC2.
-  Double_t PI = TMath::Pi();
+  Double_t d             = 2310.31;  // [mm]: BDC1 - MINOS center.
+  Double_t Dist_BDC1TPC  = 2310.31;  // [mm]: BDC1 - MINOS center.
+  Double_t dBDC          = 999.53;   // [mm]: BDC1 - BDC2.
+  Double_t Dist_BDC1BDC2 = 999.53;   // [mm]: BDC1 - BDC2.
+  Double_t PI            = TMath::Pi();
 
   //===== Declare variables =====
   Double_t bdc_dx, bdc_dy;
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
   Double_t Dist_minBDC, Dist_min;
   Double_t MINOS_tr1_phi, MINOS_tr1_theta, MINOS_tr2_phi, MINOS_tr2_theta, MINOS_tr_phi, MINOS_tr_theta;
   Double_t MINOS_Radius;
-  Int_t MINOS_NumberTracks;
+  Int_t    MINOS_NumberTracks;
   Double_t Target_R, TargetLength;
 
   //===== Create tree Branch =====
@@ -185,6 +185,9 @@ int main(int argc, char *argv[]) {
   prepare_timer_tk();
 
   int nEntry = caltrM->GetEntries();
+
+  cout << "You will process " << nEntry << " events." << endl;
+
   for(int iEntry = 0; iEntry < nEntry; iEntry++) {
     //for(int iEntry=0;iEntry<10000;iEntry++){
 
@@ -192,16 +195,17 @@ int main(int argc, char *argv[]) {
 
     caltrM->GetEntry(iEntry);
 
-    RunNumber = RunNumber_minos;
+    RunNumber   = RunNumber_minos;
     EventNumber = EventNumber_minos;
 
     //=== Initialization =====
-    vertexX = Sqrt(-1);
-    vertexY = Sqrt(-1);
-    vertexZ = Sqrt(-1);
-    vertexR = Sqrt(-1);
-    vertexTheta = Sqrt(-1);
-    vertexPhi = Sqrt(-1);
+    vertexX            = Sqrt(-1);
+    vertexY            = Sqrt(-1);
+    vertexZ            = Sqrt(-1);
+    vertexR            = Sqrt(-1);
+    vertexTheta        = Sqrt(-1);
+    vertexPhi          = Sqrt(-1);
+    MINOS_NumberTracks = 0;
     //Frank
 
     // MINOS
@@ -219,9 +223,9 @@ int main(int argc, char *argv[]) {
       MINOS_X_BDC = x_vertexBDC;
       MINOS_Y_BDC = y_vertexBDC;
       MINOS_Z_BDC = z_vertexBDC;
-      x_vertex = x_vertexBDC;
-      y_vertex = y_vertexBDC;
-      z_vertex = z_vertexBDC;
+      x_vertex    = x_vertexBDC;
+      y_vertex    = y_vertexBDC;
+      z_vertex    = z_vertexBDC;
       if(parFit1->size() > 1) {
         parTrack2[0] = parFit1->at(1);  // second track in MINOS
         parTrack2[1] = parFit2->at(1);  // second track in MINOS
@@ -229,28 +233,28 @@ int main(int argc, char *argv[]) {
         parTrack2[3] = parFit4->at(1);  // second track in MINOS
         Vertex(parTrack1, parTrack2, x_vertex, y_vertex, z_vertex, Dist_min);
         TVector3 ptr1(parTrack1[1], parTrack1[3], 1);
-        ptr1 = ptr1.Unit();
+        ptr1            = ptr1.Unit();
         MINOS_tr1_theta = ptr1.Theta() / 3.1415927 * 180.;
-        MINOS_tr1_phi = ptr1.Phi() / 3.1415927 * 180.;
+        MINOS_tr1_phi   = ptr1.Phi() / 3.1415927 * 180.;
         TVector3 ptr2(parTrack2[1], parTrack2[3], 1);
-        ptr2 = ptr2.Unit();
+        ptr2            = ptr2.Unit();
         MINOS_tr2_theta = ptr2.Theta() / 3.1415927 * 180.;
-        MINOS_tr2_phi = ptr2.Phi() / 3.1415927 * 180.;
-        MINOS_tr_theta = TMath::ACos(ptr1.Dot(ptr2)) / 3.1415927 * 180.;
-        MINOS_tr_phi = TMath::Abs(MINOS_tr1_phi - MINOS_tr2_phi);
-        MINOS_tr_phi = MINOS_tr_phi > 180 ? 360 - MINOS_tr_phi : MINOS_tr_phi;
+        MINOS_tr2_phi   = ptr2.Phi() / 3.1415927 * 180.;
+        MINOS_tr_theta  = TMath::ACos(ptr1.Dot(ptr2)) / 3.1415927 * 180.;
+        MINOS_tr_phi    = TMath::Abs(MINOS_tr1_phi - MINOS_tr2_phi);
+        MINOS_tr_phi    = MINOS_tr_phi > 180 ? 360 - MINOS_tr_phi : MINOS_tr_phi;
       }
-      MINOS_X = x_vertex;
-      MINOS_Y = y_vertex;
-      MINOS_Z = z_vertex;
-      MINOS_D_min = Dist_min;
-      MINOS_Radius = TMath::Sqrt(x_vertex * x_vertex + y_vertex * y_vertex);
+      MINOS_X            = x_vertex;
+      MINOS_Y            = y_vertex;
+      MINOS_Z            = z_vertex;
+      MINOS_D_min        = Dist_min;
+      MINOS_Radius       = TMath::Sqrt(x_vertex * x_vertex + y_vertex * y_vertex);
       MINOS_NumberTracks = NumberTracks;
     }
     double TargetLength0 = 150;  // in mm
-    double tmpk = 4. / 400.;
-    Target_R = sqrt(Target_X * Target_X + Target_Y * Target_Y);
-    TargetLength = TargetLength0 - tmpk * Target_R * Target_R;
+    double tmpk          = 4. / 400.;
+    Target_R             = sqrt(Target_X * Target_X + Target_Y * Target_Y);
+    TargetLength         = TargetLength0 - tmpk * Target_R * Target_R;
 
     tr->Fill();
   }  //for LOOP end
@@ -258,36 +262,36 @@ int main(int argc, char *argv[]) {
   tr->Write();
   outf->Close();
 
-  stop_timer_tk(nEntry);
+  stop_timer_tk(filenum, nEntry);
 }  //main()
 
 void Vertex(double *p, double *pp, double &xv, double &yv, double &zv, double &min_dist) {
-  double a1 = p[0];
-  double a2 = p[2];
-  double b1 = p[1];
-  double b2 = p[3];
+  double a1  = p[0];
+  double a2  = p[2];
+  double b1  = p[1];
+  double b2  = p[3];
   double ap1 = pp[0];
   double ap2 = pp[2];
   double bp1 = pp[1];
   double bp2 = pp[3];
   double alpha, beta, A, B, C;
   alpha = (bp1 * (a1 - ap1) + bp2 * (a2 - ap2)) / (bp1 * bp1 + bp2 * bp2 + 1);
-  beta = (bp1 * b1 + bp2 * b2 + 1) / (bp1 * bp1 + bp2 * bp2 + 1);
-  A = beta * (bp1 * bp1 + bp2 * bp2 + 1) - (bp1 * b1 + bp2 * b2 + 1);
-  B = (b1 * b1 + b2 * b2 + 1) - beta * (bp1 * b1 + bp2 * b2 + 1);
-  C = beta * (bp1 * (ap1 - a1) + bp2 * (ap2 - a2)) - (b1 * (ap1 - a1) + b2 * (ap2 - a2));
+  beta  = (bp1 * b1 + bp2 * b2 + 1) / (bp1 * bp1 + bp2 * bp2 + 1);
+  A     = beta * (bp1 * bp1 + bp2 * bp2 + 1) - (bp1 * b1 + bp2 * b2 + 1);
+  B     = (b1 * b1 + b2 * b2 + 1) - beta * (bp1 * b1 + bp2 * b2 + 1);
+  C     = beta * (bp1 * (ap1 - a1) + bp2 * (ap2 - a2)) - (b1 * (ap1 - a1) + b2 * (ap2 - a2));
   double sol1, solf1;
   double x, y, z, xp, yp, zp;
-  sol1 = -(A * alpha + C) / (A * beta + B);
-  solf1 = alpha + beta * sol1;
-  x = a1 + b1 * sol1;
-  y = a2 + b2 * sol1;
-  z = sol1;
-  xp = ap1 + bp1 * solf1;
-  yp = ap2 + bp2 * solf1;
-  zp = solf1;
-  xv = (x + xp) / 2.;
-  yv = (y + yp) / 2.;
-  zv = (z + zp) / 2.;
+  sol1     = -(A * alpha + C) / (A * beta + B);
+  solf1    = alpha + beta * sol1;
+  x        = a1 + b1 * sol1;
+  y        = a2 + b2 * sol1;
+  z        = sol1;
+  xp       = ap1 + bp1 * solf1;
+  yp       = ap2 + bp2 * solf1;
+  zp       = solf1;
+  xv       = (x + xp) / 2.;
+  yv       = (y + yp) / 2.;
+  zv       = (z + zp) / 2.;
   min_dist = sqrt(pow((x - xp), 2) + pow((y - yp), 2) + pow((z - zp), 2));
 }
